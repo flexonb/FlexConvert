@@ -1,8 +1,10 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "./components/Dashboard";
+import ShareView from "./components/sharing/ShareView";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import "./utils/errorReporting"; // Initialize error reporting
@@ -25,10 +27,15 @@ export default function App() {
         <SelectionProvider>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider delayDuration={150}>
-              <div className="min-h-screen bg-background text-foreground">
-                <Dashboard />
-                <Toaster />
-              </div>
+              <Router>
+                <div className="min-h-screen bg-background text-foreground">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/share/:shareId" element={<ShareView />} />
+                  </Routes>
+                  <Toaster />
+                </div>
+              </Router>
             </TooltipProvider>
           </QueryClientProvider>
         </SelectionProvider>

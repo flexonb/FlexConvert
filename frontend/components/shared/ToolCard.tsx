@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Share2 } from "lucide-react";
 
 interface ToolCardProps {
   icon: LucideIcon;
@@ -17,6 +17,8 @@ interface ToolCardProps {
   buttonText?: string;
   buttonVariant?: "default" | "secondary" | "outline";
   disabled?: boolean;
+  onShare?: () => void;
+  showShareButton?: boolean;
 }
 
 export default function ToolCard({
@@ -29,7 +31,9 @@ export default function ToolCard({
   onClick,
   buttonText = "Run",
   buttonVariant = "secondary",
-  disabled = false
+  disabled = false,
+  onShare,
+  showShareButton = false
 }: ToolCardProps) {
   const styles = {
     blue: {
@@ -127,8 +131,24 @@ export default function ToolCard({
               <Icon className={cn("w-6 h-6", styles.text)} />
             </div>
 
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true">
-              <Sparkles className="w-4 h-4 text-gray-400 animate-pulse" />
+            <div className="flex items-center gap-1">
+              {showShareButton && onShare && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShare();
+                  }}
+                  title="Share configuration"
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              )}
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true">
+                <Sparkles className="w-4 h-4 text-gray-400 animate-pulse" />
+              </div>
             </div>
           </div>
 
