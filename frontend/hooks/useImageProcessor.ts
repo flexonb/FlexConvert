@@ -18,7 +18,7 @@ import {
 export function useImageProcessor() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
-  const [resultFiles, setResultFiles] = useState<{ blob: Blob; operation: ImageOperation; originalName: string }[]>([]);
+  const [resultFiles, setResultFiles] = useState<{ blob: Blob; operation: ImageOperation; originalName: string; filename: string }[]>([]);
   const { toast } = useToast();
 
   const updateProgress = (val: number) => setProgress(Math.max(0, Math.min(100, Math.round(val))));
@@ -38,7 +38,7 @@ export function useImageProcessor() {
     setResultFiles([]);
 
     try {
-      const results: { blob: Blob; operation: ImageOperation; originalName: string }[] = [];
+      const results: { blob: Blob; operation: ImageOperation; originalName: string; filename: string }[] = [];
       let i = 0;
 
       for (const file of files) {
@@ -83,7 +83,11 @@ export function useImageProcessor() {
             throw new Error(`Unsupported operation: ${operation as string}`);
         }
 
-        results.push({ blob, operation, originalName: file.name });
+        const ext = blob.type.split('/')[1] || 'jpg';
+        const baseName = file.name.replace(/\.[^/.]+$/, "");
+        const filename = `${baseName}-${operation}-${i}.${ext}`;
+
+        results.push({ blob, operation, originalName: file.name, filename });
         updateProgress((i / files.length) * 100);
       }
 
@@ -115,13 +119,11 @@ export function useImageProcessor() {
   const downloadResults = () => {
     if (resultFiles.length === 0) return;
 
-    resultFiles.forEach(({ blob, operation, originalName }, index) => {
+    resultFiles.forEach(({ blob, filename }) => {
       const url = URL.createObjectURL(blob);
-      const ext = blob.type.split('/')[1] || 'jpg';
-      const baseName = originalName.replace(/\.[^/.]+$/, "");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${baseName}-${operation}-${index + 1}.${ext}`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

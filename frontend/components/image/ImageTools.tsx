@@ -11,7 +11,8 @@ import {
   Sun,
   Type,
   Wand2,
-  Download
+  Download,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProcessingStatus from "../shared/ProcessingStatus";
@@ -19,9 +20,12 @@ import { useImageProcessor } from "../../hooks/useImageProcessor";
 import ToolCard from "../shared/ToolCard";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { type Step } from "../shared/StepIndicator";
-import type { ImageEnhanceOptions, ImageOperation } from "@/utils/imageProcessor";
+import type { ImageOperation } from "@/utils/imageProcessor";
 import { useSelection } from "../../context/SelectionContext";
 import ImageEditorPanel from "./ImageEditorPanel";
+import ShareDialog from "../sharing/ShareDialog";
+import type { ShareConfig } from "~backend/sharing/types";
+import { getDefaultImageOptions } from "../../utils/imageProcessor";
 
 type ConfigurableOperation =
   | "enhance"
@@ -42,6 +46,10 @@ export default function ImageTools() {
 
   const { status, progress, processFiles, resultFiles, downloadResults } = useImageProcessor();
   const { files: selFiles, setSelection } = useSelection();
+
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareConfig, setShareConfig] = useState<ShareConfig | null>(null);
+  const [shareFile, setShareFile] = useState<File | null>(null);
 
   // Sync with global selection
   useEffect(() => {
@@ -101,6 +109,27 @@ export default function ImageTools() {
     setSelection(newFiles, "image");
   };
 
+  const handleShareConfig = (toolId: string, toolTitle: string) => {
+    const config: ShareConfig = {
+      toolCategory: 'image',
+      toolName: toolTitle,
+      options: getDefaultImageOptions(toolId as ImageOperation),
+      description: `Configuration for the ${toolTitle} tool.`
+    };
+    setShareConfig(config);
+    setShareFile(null);
+    setIsShareDialogOpen(true);
+  };
+
+  const handleShareFile = () => {
+    const firstResultFile = resultFiles.length > 0 ? resultFiles[0] : null;
+    if (firstResultFile) {
+      setShareFile(new File([firstResultFile.blob], firstResultFile.filename));
+      setShareConfig(null);
+      setIsShareDialogOpen(true);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -132,12 +161,20 @@ export default function ImageTools() {
                 disabled={files.length === 0 || status === "processing"}
                 buttonText={files.length === 0 ? "Select files" : "Open editor"}
                 buttonVariant={files.length === 0 ? "outline" : "default"}
+                showShareButton={true}
+                onShare={() => handleShareConfig(tool.id, tool.title)}
               />
             ))}
           </div>
 
           {status === "success" && (
             <div className="flex justify-end mt-2 gap-2">
+              {resultFiles.length > 0 && (
+                <Button size="sm" variant="secondary" onClick={handleShareFile}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share First Result
+                </Button>
+              )}
               <Button size="sm" variant="secondary" onClick={downloadResults}>
                 <Download className="w-4 h-4 mr-2" />
                 Download Results ({resultFiles.length})
@@ -159,6 +196,14 @@ export default function ImageTools() {
           />
         </div>
       )}
+
+      <ShareDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        type={shareFile ? "file" : "config"}
+        file={shareFile ?? undefined}
+        config={shareConfig ?? undefined}
+      />
     </div>
   );
 }

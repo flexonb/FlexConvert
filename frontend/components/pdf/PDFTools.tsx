@@ -12,6 +12,7 @@ import {
   Droplets,
   Image as ImageIcon,
   FileInput,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProcessingStatus from "../shared/ProcessingStatus";
@@ -22,6 +23,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { Step } from "../shared/StepIndicator";
 import { useSelection } from "../../context/SelectionContext";
+import ShareDialog from "../sharing/ShareDialog";
+import type { ShareConfig } from "~backend/sharing/types";
+import { getDefaultPDFOptions } from "../../utils/pdfProcessor";
 
 export default function PDFTools() {
   const [files, setFiles] = useState<File[]>([]);
@@ -30,6 +34,8 @@ export default function PDFTools() {
     progress,
     processFiles,
     downloadResult,
+    resultBlob,
+    resultFilename,
     needsConfig,
     pdfInfo,
     handleConfigConfirm,
@@ -37,6 +43,8 @@ export default function PDFTools() {
     loadInfo,
   } = usePDFProcessor();
   const { files: selFiles, setSelection } = useSelection();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareConfig, setShareConfig] = useState<ShareConfig | null>(null);
 
   useEffect(() => {
     // Sync with global selection (from Welcome)
@@ -191,6 +199,17 @@ export default function PDFTools() {
     setSelection(newFiles, "pdf");
   };
 
+  const handleShareConfig = (toolId: string, toolTitle: string) => {
+    const config: ShareConfig = {
+      toolCategory: 'pdf',
+      toolName: toolTitle,
+      options: getDefaultPDFOptions(toolId as any, pdfInfo?.pageCount || 1),
+      description: `Configuration for the ${toolTitle} tool.`
+    };
+    setShareConfig(config);
+    setIsShareDialogOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -221,6 +240,8 @@ export default function PDFTools() {
                 buttonText={getToolButtonText(tool)}
                 buttonVariant={isToolDisabled(tool) ? "outline" : "default"}
                 meta={tool.minFiles === tool.maxFiles ? `Requires ${tool.minFiles} file${tool.minFiles > 1 ? "s" : ""}` : `Requires ${tool.minFiles}-${tool.maxFiles} files`}
+                showShareButton={true}
+                onShare={() => handleShareConfig(tool.id, tool.title)}
               />
             ))}
           </div>
@@ -240,8 +261,12 @@ export default function PDFTools() {
             </div>
           )}
 
-          {status === "success" && (
-            <div className="flex justify-end mt-2">
+          {status === "success" && resultBlob && (
+            <div className="flex justify-end mt-2 gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Result
+              </Button>
               <Button size="sm" onClick={downloadResult}>Download Result</Button>
             </div>
           )}
@@ -257,6 +282,14 @@ export default function PDFTools() {
           onConfirm={handleConfigConfirm}
         />
       )}
+
+      <ShareDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        type={shareConfig ? "config" : "file"}
+        config={shareConfig ?? undefined}
+        file={resultBlob && !shareConfig ? new File([resultBlob], resultFilename) : undefined}
+      />
     </div>
   );
 }

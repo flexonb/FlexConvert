@@ -31,7 +31,8 @@ import {
   convertFormat,
   grayscaleImage,
   adjustImage,
-  textOverlay
+  textOverlay,
+  getDefaultImageOptions,
 } from "@/utils/imageProcessor";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -74,7 +75,7 @@ export default function ImageEditorPanel({
   const { toast } = useToast();
   const firstFile = files[0];
 
-  const [options, setOptions] = useState<AnyOptions>(() => defaultOptionsFor(operation));
+  const [options, setOptions] = useState<AnyOptions>(() => getDefaultImageOptions(operation));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -100,7 +101,7 @@ export default function ImageEditorPanel({
 
   // Reset when operation changes
   useEffect(() => {
-    setOptions(defaultOptionsFor(operation));
+    setOptions(getDefaultImageOptions(operation));
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setAspect(operation === "crop" ? 1 : null);
@@ -244,7 +245,7 @@ export default function ImageEditorPanel({
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="hidden sm:inline-flex">{files.length} selected</Badge>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setOptions(defaultOptionsFor(operation))}>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setOptions(getDefaultImageOptions(operation))}>
               <Undo2 className="w-4 h-4" /> Reset
             </Button>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close editor">
@@ -418,33 +419,6 @@ function iconFor(op: ImageOperation) {
     case "rotate": return <RotateCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
     case "text-overlay": return <Type className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
     default: return <ImageIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
-  }
-}
-
-function defaultOptionsFor(op: ImageOperation): AnyOptions {
-  switch (op) {
-    case "enhance":
-      return { sharpen: 0.5, denoise: 0.2, autoLevels: true, saturation: 1.05, contrast: 1.05, brightness: 1.0 } as ImageEnhanceOptions;
-    case "resize":
-      return { maxWidth: 1920, maxHeight: 1080, format: "jpeg", quality: 0.9 } as ResizeOptions;
-    case "crop":
-      return { area: { x: 0, y: 0, width: 0, height: 0 }, format: "jpeg", quality: 0.92 } as CropOptions;
-    case "compress":
-      return { format: "jpeg", quality: 0.7 } as CompressOptions;
-    case "rotate":
-      return { degrees: 90, format: "jpeg", quality: 0.9 } as RotateOptions;
-    case "flip":
-      return { horizontal: true, vertical: false, format: "jpeg", quality: 0.9 } as FlipOptions;
-    case "convert":
-      return { format: "webp", quality: 0.92 } as ConvertOptions;
-    case "grayscale":
-      return {};
-    case "adjust":
-      return { brightness: 1.1, contrast: 1.05, saturation: 1.05, format: "jpeg", quality: 0.9 } as AdjustOptions;
-    case "text-overlay":
-      return { text: "FlexConvert", opacity: 0.75, position: "bottom-right", offsetX: 0, offsetY: 0, format: "jpeg", quality: 0.92 } as TextOverlayOptions;
-    default:
-      return {};
   }
 }
 

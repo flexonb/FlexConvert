@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Droplets, Type, Image as ImageIcon, Download, RotateCw } from "lucide-react";
+import { Droplets, Type, Image as ImageIcon, Download, RotateCw, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ShareDialog from "../sharing/ShareDialog";
 
 interface WatermarkSettings {
   type: "text" | "image";
@@ -39,6 +40,8 @@ export default function WatermarkDesigner() {
   const [watermarkImage, setWatermarkImage] = useState<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareableFile, setShareableFile] = useState<File | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "preview" | "watermark") => {
     const file = e.target.files?.[0];
@@ -128,6 +131,15 @@ export default function WatermarkDesigner() {
         description: "Your watermarked image has been downloaded",
       });
     }
+  };
+
+  const prepareForShare = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const blob = await new Promise<Blob>(res => canvas.toBlob(b => res(b!)));
+    const file = new File([blob], `watermarked_image_${Date.now()}.png`, { type: 'image/png' });
+    setShareableFile(file);
+    setIsShareDialogOpen(true);
   };
 
   const positions = [
@@ -367,13 +379,28 @@ export default function WatermarkDesigner() {
           </div>
 
           {previewImage && (
-            <Button onClick={downloadWatermarkedImage} className="w-full">
-              <Download className="w-4 h-4 mr-2" />
-              Download Watermarked Image
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={downloadWatermarkedImage} className="flex-1">
+                <Download className="w-4 h-4 mr-2" />
+                Download Watermarked Image
+              </Button>
+              <Button variant="outline" onClick={prepareForShare}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {isShareDialogOpen && shareableFile && (
+        <ShareDialog
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          type="file"
+          file={shareableFile}
+        />
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ export function usePDFProcessor() {
   const [progress, setProgress] = useState(0);
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [resultBlobs, setResultBlobs] = useState<Blob[]>([]);
+  const [resultFilename, setResultFilename] = useState<string>("");
   const [needsConfig, setNeedsConfig] = useState<{ operation: PDFOperation; files: File[] } | null>(null);
   const [pdfInfo, setPdfInfo] = useState<any>(null);
   const { toast } = useToast();
@@ -78,6 +79,7 @@ export function usePDFProcessor() {
     setProgress(0);
     setResultBlob(null);
     setResultBlobs([]);
+    setResultFilename("");
 
     try {
       const progressInterval = setInterval(() => {
@@ -165,10 +167,12 @@ export function usePDFProcessor() {
         });
       } else if (result) {
         setResultBlob(result);
+        const filename = getOutputFilename(operation, files[0].name, options);
+        setResultFilename(filename);
         const url = URL.createObjectURL(result);
         const a = document.createElement("a");
         a.href = url;
-        a.download = getOutputFilename(operation, files[0].name, options);
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -205,7 +209,7 @@ export function usePDFProcessor() {
       const url = URL.createObjectURL(resultBlob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "processed.pdf";
+      a.download = resultFilename || "processed.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -231,6 +235,7 @@ export function usePDFProcessor() {
     downloadResult,
     resultBlob,
     resultBlobs,
+    resultFilename,
     needsConfig,
     pdfInfo,
     handleConfigConfirm,

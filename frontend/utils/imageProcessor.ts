@@ -76,6 +76,45 @@ export interface TextOverlayOptions {
   quality?: number;
 }
 
+type AnyOptions =
+  | ImageEnhanceOptions
+  | ResizeOptions
+  | CropOptions
+  | CompressOptions
+  | RotateOptions
+  | FlipOptions
+  | ConvertOptions
+  | AdjustOptions
+  | TextOverlayOptions
+  | Record<string, any>;
+
+export function getDefaultImageOptions(op: ImageOperation): AnyOptions {
+  switch (op) {
+    case "enhance":
+      return { sharpen: 0.5, denoise: 0.2, autoLevels: true, saturation: 1.05, contrast: 1.05, brightness: 1.0 } as ImageEnhanceOptions;
+    case "resize":
+      return { maxWidth: 1920, maxHeight: 1080, format: "jpeg", quality: 0.9 } as ResizeOptions;
+    case "crop":
+      return { area: { x: 0, y: 0, width: 0, height: 0 }, format: "jpeg", quality: 0.92 } as CropOptions;
+    case "compress":
+      return { format: "jpeg", quality: 0.7 } as CompressOptions;
+    case "rotate":
+      return { degrees: 90, format: "jpeg", quality: 0.9 } as RotateOptions;
+    case "flip":
+      return { horizontal: true, vertical: false, format: "jpeg", quality: 0.9 } as FlipOptions;
+    case "convert":
+      return { format: "webp", quality: 0.92 } as ConvertOptions;
+    case "grayscale":
+      return {};
+    case "adjust":
+      return { brightness: 1.1, contrast: 1.05, saturation: 1.05, format: "jpeg", quality: 0.9 } as AdjustOptions;
+    case "text-overlay":
+      return { text: "FlexConvert", opacity: 0.75, position: "bottom-right", offsetX: 0, offsetY: 0, format: "jpeg", quality: 0.92 } as TextOverlayOptions;
+    default:
+      return {};
+  }
+}
+
 function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);

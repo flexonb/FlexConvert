@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, FileText, Image, Archive } from "lucide-react";
+import { RefreshCcw, FileText, Image, Archive, Share2, Download } from "lucide-react";
 import ProcessingStatus from "../shared/ProcessingStatus";
 import { useConverter } from "../../hooks/useConverter";
 import ToolCard from "../shared/ToolCard";
@@ -8,6 +8,8 @@ import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { type Step } from "../shared/StepIndicator";
 import { useToast } from "@/components/ui/use-toast";
 import { useSelection } from "../../context/SelectionContext";
+import ShareDialog from "../sharing/ShareDialog";
+import { Button } from "@/components/ui/button";
 
 type ConverterId =
   | "txt-to-pdf"
@@ -33,9 +35,11 @@ const ALL_ACCEPTED_EXTS = [
 
 export default function ConvertTools() {
   const [files, setFiles] = useState<File[]>([]);
-  const { status, progress, convertFiles } = useConverter();
+  const { status, progress, convertFiles, resultData, downloadResults } = useConverter();
   const { toast } = useToast();
   const { files: selFiles, setSelection } = useSelection();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const firstResult = resultData.length > 0 ? resultData[0] : null;
 
   // Sync with global selection (if user came from Welcome)
   useEffect(() => {
@@ -172,8 +176,30 @@ export default function ConvertTools() {
               );
             })}
           </div>
+
+          {status === "success" && resultData.length > 0 && (
+            <div className="flex justify-end mt-4 gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share First Result
+              </Button>
+              <Button size="sm" onClick={downloadResults}>
+                <Download className="w-4 h-4 mr-2" />
+                Download All ({resultData.length})
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {isShareDialogOpen && firstResult && (
+        <ShareDialog
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          type="file"
+          file={new File([firstResult.blob], firstResult.suggestedName)}
+        />
+      )}
     </div>
   );
 }

@@ -15,7 +15,7 @@ type ConversionType =
 export function useConverter() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
-  const [resultFiles, setResultFiles] = useState<Blob[]>([]);
+  const [resultData, setResultData] = useState<{ blob: Blob; suggestedName: string }[]>([]);
   const { toast } = useToast();
 
   const convertFiles = async (files: File[], conversionType: ConversionType) => {
@@ -30,7 +30,7 @@ export function useConverter() {
 
     setStatus("processing");
     setProgress(0);
-    setResultFiles([]);
+    setResultData([]);
 
     try {
       const results: { blob: Blob; suggestedName: string }[] = [];
@@ -56,7 +56,7 @@ export function useConverter() {
           throw new Error(`Unsupported conversion type: ${conversionType}`);
       }
 
-      setResultFiles(results.map((r) => r.blob));
+      setResultData(results);
       setProgress(100);
       setStatus("success");
 
@@ -65,18 +65,6 @@ export function useConverter() {
       toast({
         title: "Conversion complete",
         description: `Successfully processed ${files.length} file(s).`,
-      });
-
-      // Auto-download
-      results.forEach(({ blob, suggestedName }, index) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = suggestedName || `converted-${index + 1}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
       });
     } catch (error) {
       console.error("Conversion error:", error);
@@ -101,10 +89,25 @@ export function useConverter() {
     }
   };
 
+  const downloadResults = () => {
+    if (resultData.length === 0) return;
+    resultData.forEach(({ blob, suggestedName }, index) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = suggestedName || `converted-${index + 1}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  };
+
   return {
     status,
     progress,
     convertFiles,
-    resultFiles,
+    resultData,
+    downloadResults,
   };
 }

@@ -5,6 +5,18 @@ import pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
 // Configure PDF.js worker to be bundled with Vite.
 GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
+export type PDFOperation =
+  | "merge"
+  | "split"
+  | "compress"
+  | "rotate"
+  | "reorder"
+  | "add-pages"
+  | "remove-pages"
+  | "watermark"
+  | "to-images"
+  | "extract-range";
+
 export interface PDFProcessingOptions {
   quality?: number;
   rotation?: number;
@@ -16,6 +28,20 @@ export interface PDFProcessingOptions {
   pageOrder?: number[];
   insertPages?: { position: number; count: number }[];
   removePages?: number[];
+}
+
+export function getDefaultPDFOptions(operation: PDFOperation, pageCount: number = 1): PDFProcessingOptions {
+  switch (operation) {
+    case 'rotate': return { rotation: 90 };
+    case 'watermark': return { watermarkText: 'CONFIDENTIAL', watermarkOpacity: 0.3 };
+    case 'to-images': return { imageFormat: 'png' };
+    case 'split': return { pageRange: { start: 0, end: pageCount - 1 } };
+    case 'remove-pages': return { removePages: [] };
+    case 'add-pages': return { insertPages: [{ position: 0, count: 1 }] };
+    case 'reorder': return { pageOrder: Array.from({ length: pageCount }, (_, i) => i) };
+    case 'extract-range': return { pageRange: { start: 0, end: pageCount - 1 } };
+    default: return {};
+  }
 }
 
 export class PDFProcessor {

@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { QrCode, Download, Palette, Settings } from "lucide-react";
+import { QrCode, Download, Palette, Settings, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import QRCode from 'qrcode';
+import ShareDialog from "../sharing/ShareDialog";
 
 interface QRCodeOptions {
   text: string;
@@ -32,6 +33,8 @@ export default function QRCodeTool() {
   const [isGenerating, setIsGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [shareableFile, setShareableFile] = useState<File | null>(null);
 
   const generateQRCode = async () => {
     if (!options.text.trim()) {
@@ -104,6 +107,29 @@ export default function QRCodeTool() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  const prepareForShare = async () => {
+    if (!qrCodeUrl) return;
+    let blob: Blob;
+    let filename: string;
+    if (options.format === 'SVG') {
+      const svgString = await QRCode.toString(options.text, {
+        type: 'svg',
+        errorCorrectionLevel: options.errorCorrectionLevel.toLowerCase() as any,
+        color: { dark: options.foregroundColor, light: options.backgroundColor },
+      });
+      const dataUrl = `data:image/svg+xml;base64,${btoa(svgString)}`;
+      blob = await (await fetch(dataUrl)).blob();
+      filename = `qrcode_${Date.now()}.svg`;
+    } else {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      blob = await new Promise<Blob>(res => canvas.toBlob(b => res(b!)));
+      filename = `qrcode_${Date.now()}.png`;
+    }
+    setShareableFile(new File([blob], filename, { type: blob.type }));
+    setIsShareDialogOpen(true);
   };
 
   return (
@@ -267,15 +293,30 @@ export default function QRCodeTool() {
           </div>
 
           {qrCodeUrl && (
-            <Button onClick={downloadQRCode} className="w-full" disabled={!qrCodeUrl}>
-              <Download className="w-4 h-4 mr-2" />
-              Download as {options.format}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={downloadQRCode} className="flex-1" disabled={!qrCodeUrl}>
+                <Download className="w-4 h-4 mr-2" />
+                Download as {options.format}
+              </Button>
+              <Button variant="outline" onClick={prepareForShare} disabled={!qrCodeUrl}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            </div>
           )}
 
           <canvas ref={canvasRef} className="hidden" />
         </CardContent>
       </Card>
+
+      {isShareDialogOpen && shareableFile && (
+        <ShareDialog
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          type="file"
+          file={shareableFile}
+        />
+      )}
     </div>
   );
 }
