@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { QrCode, Download, Palette, Settings } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import QRCode from 'qrcode';
 
 interface QRCodeOptions {
   text: string;
@@ -46,49 +47,17 @@ export default function QRCodeTool() {
     setQrCodeUrl(null);
     
     try {
-      // Simulate QR code generation (in real implementation, use qrcode library)
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock QR code generation
       const canvas = canvasRef.current;
       if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          canvas.width = options.size;
-          canvas.height = options.size;
-          
-          // Simple mock QR pattern
-          ctx.fillStyle = options.backgroundColor;
-          ctx.fillRect(0, 0, options.size, options.size);
-          
-          ctx.fillStyle = options.foregroundColor;
-          const cellSize = options.size / 25;
-          
-          // Draw a simple QR-like pattern
-          for (let i = 0; i < 25; i++) {
-            for (let j = 0; j < 25; j++) {
-              if ((i + j) % 3 === 0 || (i % 7 === 0 && j % 7 === 0)) {
-                ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-              }
-            }
-          }
-          
-          // Add corner squares
-          const cornerSize = cellSize * 7;
-          ctx.fillRect(0, 0, cornerSize, cornerSize);
-          ctx.fillRect(options.size - cornerSize, 0, cornerSize, cornerSize);
-          ctx.fillRect(0, options.size - cornerSize, cornerSize, cornerSize);
-          
-          // Add white centers
-          ctx.fillStyle = options.backgroundColor;
-          const centerSize = cellSize * 3;
-          ctx.fillRect(cellSize * 2, cellSize * 2, centerSize, centerSize);
-          ctx.fillRect(options.size - cellSize * 5, cellSize * 2, centerSize, centerSize);
-          ctx.fillRect(cellSize * 2, options.size - cellSize * 5, centerSize, centerSize);
-        }
-        
-        const dataUrl = canvas.toDataURL('image/png');
-        setQrCodeUrl(dataUrl);
+        await QRCode.toCanvas(canvas, options.text, {
+          width: options.size,
+          errorCorrectionLevel: options.errorCorrectionLevel.toLowerCase() as any,
+          color: {
+            dark: options.foregroundColor,
+            light: options.backgroundColor,
+          },
+        });
+        setQrCodeUrl(canvas.toDataURL('image/png'));
       }
       
       toast({
@@ -99,7 +68,7 @@ export default function QRCodeTool() {
       console.error("QR generation error:", error);
       toast({
         title: "Generation failed",
-        description: "Failed to generate QR code",
+        description: "Failed to generate QR code. The text might be too long for the selected error correction level.",
         variant: "destructive",
       });
     } finally {
@@ -107,15 +76,34 @@ export default function QRCodeTool() {
     }
   };
 
-  const downloadQRCode = () => {
-    if (qrCodeUrl) {
-      const a = document.createElement('a');
-      a.href = qrCodeUrl;
-      a.download = `qrcode_${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+  const downloadQRCode = async () => {
+    if (!qrCodeUrl) return;
+
+    let dataUrl: string;
+    let filename: string;
+
+    if (options.format === 'SVG') {
+      const svgString = await QRCode.toString(options.text, {
+        type: 'svg',
+        errorCorrectionLevel: options.errorCorrectionLevel.toLowerCase() as any,
+        color: {
+          dark: options.foregroundColor,
+          light: options.backgroundColor,
+        },
+      });
+      dataUrl = `data:image/svg+xml;base64,${btoa(svgString)}`;
+      filename = `qrcode_${Date.now()}.svg`;
+    } else {
+      dataUrl = qrCodeUrl;
+      filename = `qrcode_${Date.now()}.png`;
     }
+
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -214,6 +202,24 @@ export default function QRCodeTool() {
             </div>
           </div>
 
+          <div>
+            <Label>Format</Label>
+            <Select
+              value={options.format}
+              onValueChange={(value: "PNG" | "SVG") => 
+                setOptions(prev => ({ ...prev, format: value }))
+              }
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PNG">PNG</SelectItem>
+                <SelectItem value="SVG">SVG</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button 
             onClick={generateQRCode}
             disabled={!options.text.trim() || isGenerating}
@@ -261,9 +267,9 @@ export default function QRCodeTool() {
           </div>
 
           {qrCodeUrl && (
-            <Button onClick={downloadQRCode} className="w-full">
+            <Button onClick={downloadQRCode} className="w-full" disabled={!qrCodeUrl}>
               <Download className="w-4 h-4 mr-2" />
-              Download QR Code
+              Download as {options.format}
             </Button>
           )}
 

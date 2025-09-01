@@ -6,6 +6,7 @@ import { FileText, Eye, Copy, Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import ProcessingStatus from "../shared/ProcessingStatus";
+import { createWorker } from 'tesseract.js';
 
 interface OCRResult {
   text: string;
@@ -18,6 +19,7 @@ export default function OCRTool() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<OCRResult[]>([]);
+  const [statusMessage, setStatusMessage] = useState("");
   const { toast } = useToast();
 
   const processOCR = async () => {
@@ -33,32 +35,37 @@ export default function OCRTool() {
     setStatus("processing");
     setProgress(0);
     setResults([]);
+    setStatusMessage("Initializing OCR worker...");
+
+    const worker = await createWorker({
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          setProgress(m.progress * 100);
+        }
+        setStatusMessage(m.status);
+      },
+    });
 
     try {
-      // Simulate OCR processing (in real implementation, this would use Tesseract.js or similar)
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+
       const processedResults: OCRResult[] = [];
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        setProgress(((i + 0.5) / files.length) * 100);
-        
-        // Simulate OCR processing delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Mock OCR result
-        const mockText = `Extracted text from ${file.name}:\n\nThis is sample text that would be extracted from the image using OCR technology. The actual implementation would use a library like Tesseract.js to perform real optical character recognition.\n\nKey features:\n• Text recognition\n• Multiple language support\n• Confidence scoring\n• Layout preservation`;
+        const { data } = await worker.recognize(file);
         
         processedResults.push({
-          text: mockText,
-          confidence: 0.85 + Math.random() * 0.15,
-          language: "en"
+          text: data.text,
+          confidence: data.confidence,
+          language: data.lang,
         });
-        
-        setProgress(((i + 1) / files.length) * 100);
       }
 
       setResults(processedResults);
       setStatus("success");
+      setStatusMessage("Processing complete!");
       
       toast({
         title: "OCR processing complete",
@@ -67,11 +74,14 @@ export default function OCRTool() {
     } catch (error) {
       console.error("OCR error:", error);
       setStatus("error");
+      setStatusMessage("An error occurred during OCR processing.");
       toast({
         title: "OCR processing failed",
         description: "An error occurred while processing your files",
         variant: "destructive",
       });
+    } finally {
+      await worker.terminate();
     }
   };
 
@@ -117,7 +127,7 @@ export default function OCRTool() {
             className="mb-4"
           />
 
-          <ProcessingStatus status={status} progress={progress} />
+          <ProcessingStatus status={status} progress={progress} message={statusMessage} />
 
           <div className="flex gap-3">
             <Button 
@@ -139,10 +149,10 @@ export default function OCRTool() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">
-                    Extracted Text - File {index + 1}
+                    Extracted Text - {files[index]?.name}
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span>Confidence: {(result.confidence * 100).toFixed(1)}%</span>
+                    <span>Confidence: {(result.confidence).toFixed(1)}%</span>
                     <span>Lang: {result.language.toUpperCase()}</span>
                   </div>
                 </div>

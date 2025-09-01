@@ -36,7 +36,7 @@ export default function WatermarkDesigner() {
     offsetY: 0
   });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [watermarkImage, setWatermarkImage] = useState<string | null>(null);
+  const [watermarkImage, setWatermarkImage] = useState<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
@@ -49,7 +49,9 @@ export default function WatermarkDesigner() {
         if (type === "preview") {
           setPreviewImage(result);
         } else {
-          setWatermarkImage(result);
+          const img = new Image();
+          img.onload = () => setWatermarkImage(img);
+          img.src = result;
         }
       };
       reader.readAsDataURL(file);
@@ -63,70 +65,55 @@ export default function WatermarkDesigner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+    const baseImg = new Image();
+    baseImg.onload = () => {
+      canvas.width = baseImg.width;
+      canvas.height = baseImg.height;
       
       // Draw base image
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(baseImg, 0, 0);
       
       // Apply watermark
       ctx.save();
       ctx.globalAlpha = settings.opacity;
       
+      let x = canvas.width / 2;
+      let y = canvas.height / 2;
+      
+      switch (settings.position) {
+        case "top-left": x = settings.offsetX; y = settings.offsetY; break;
+        case "top-right": x = canvas.width + settings.offsetX; y = settings.offsetY; break;
+        case "bottom-left": x = settings.offsetX; y = canvas.height + settings.offsetY; break;
+        case "bottom-right": x = canvas.width + settings.offsetX; y = canvas.height + settings.offsetY; break;
+        default: x = canvas.width / 2 + settings.offsetX; y = canvas.height / 2 + settings.offsetY; break;
+      }
+
+      ctx.translate(x, y);
+      ctx.rotate((settings.rotation * Math.PI) / 180);
+
       if (settings.type === "text") {
         ctx.font = `${settings.fontSize}px ${settings.fontFamily}`;
         ctx.fillStyle = settings.color;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        
-        // Calculate position
-        let x = canvas.width / 2;
-        let y = canvas.height / 2;
-        
-        switch (settings.position) {
-          case "top-left":
-            x = canvas.width * 0.2;
-            y = canvas.height * 0.2;
-            break;
-          case "top-right":
-            x = canvas.width * 0.8;
-            y = canvas.height * 0.2;
-            break;
-          case "bottom-left":
-            x = canvas.width * 0.2;
-            y = canvas.height * 0.8;
-            break;
-          case "bottom-right":
-            x = canvas.width * 0.8;
-            y = canvas.height * 0.8;
-            break;
-        }
-        
-        x += settings.offsetX;
-        y += settings.offsetY;
-        
-        // Apply rotation
-        if (settings.rotation !== 0) {
-          ctx.translate(x, y);
-          ctx.rotate((settings.rotation * Math.PI) / 180);
-          ctx.fillText(settings.text, 0, 0);
-        } else {
-          ctx.fillText(settings.text, x, y);
-        }
+        ctx.fillText(settings.text, 0, 0);
+      } else if (settings.type === 'image' && watermarkImage) {
+        const scale = settings.fontSize / 100;
+        const w = watermarkImage.width * scale;
+        const h = watermarkImage.height * scale;
+        ctx.drawImage(watermarkImage, -w / 2, -h / 2, w, h);
       }
       
       ctx.restore();
     };
-    img.src = previewImage;
+    baseImg.src = previewImage;
   };
 
   useEffect(() => {
     if (previewImage) {
-      setTimeout(applyWatermark, 100);
+      applyWatermark();
     }
-  }, [settings, previewImage]);
+  }, [settings, previewImage, watermarkImage]);
 
   const downloadWatermarkedImage = () => {
     const canvas = canvasRef.current;
@@ -181,8 +168,8 @@ export default function WatermarkDesigner() {
               />
             </div>
 
-            <Tabs value={settings.type} onValueChange={(value: "text" | "image") => 
-              setSettings(prev => ({ ...prev, type: value }))
+            <Tabs value={settings.type} onValueChange={(value) => 
+              setSettings(prev => ({ ...prev, type: value as "text" | "image" }))
             }>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="text" className="flex items-center gap-2">
@@ -267,6 +254,17 @@ export default function WatermarkDesigner() {
                     accept="image/*"
                     onChange={(e) => handleImageUpload(e, "watermark")}
                     className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Watermark Scale: {settings.fontSize}%</Label>
+                  <Slider
+                    value={[settings.fontSize]}
+                    onValueChange={([value]) => setSettings(prev => ({ ...prev, fontSize: value }))}
+                    min={10}
+                    max={100}
+                    step={5}
+                    className="mt-2"
                   />
                 </div>
               </TabsContent>
