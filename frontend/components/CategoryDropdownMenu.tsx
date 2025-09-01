@@ -5,6 +5,7 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
   NavigationMenuTrigger,
+  NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { 
   FileText, 
@@ -208,15 +209,19 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
           </NavigationMenuContent>
         </NavigationMenuItem>
 
-        {/* Analytics */}
+        {/* Analytics - use a direct link instead of a trigger to avoid blank dropdown */}
         <NavigationMenuItem>
-          <NavigationMenuTrigger 
-            onClick={() => handleNavigate("stats")}
-            className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </NavigationMenuTrigger>
+          <NavigationMenuLink asChild>
+            <button
+              onClick={() => handleNavigate("stats")}
+              className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer px-3 py-2 rounded-md hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+              aria-label="Go to Analytics"
+              type="button"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </button>
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
