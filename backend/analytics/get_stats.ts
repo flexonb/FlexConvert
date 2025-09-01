@@ -26,15 +26,18 @@ interface GetStatsParams {
 
 function buildWhereClause(params: { days?: number; category?: string }) {
   const conds: string[] = [];
-  const args: (string | number | boolean | Date | null)[] = [];
+  const args: (string | number | boolean | null)[] = [];
+  
   if (params.days && params.days > 0) {
     args.push(params.days);
-    conds.push(`created_at >= NOW() - ($${args.length}::int || ' days')::interval`);
+    conds.push(`created_at >= NOW() - INTERVAL '${params.days} days'`);
   }
+  
   if (params.category) {
     args.push(params.category);
     conds.push(`tool_category = $${args.length}`);
   }
+  
   const clause = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
   return { clause, args };
 }
