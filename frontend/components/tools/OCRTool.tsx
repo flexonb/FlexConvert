@@ -54,6 +54,7 @@ export default function OCRTool() {
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        setStatusMessage(`Recognizing text in ${file.name}...`);
         const { data } = await worker.recognize(file);
         
         processedResults.push({
@@ -77,7 +78,7 @@ export default function OCRTool() {
       setStatusMessage("An error occurred during OCR processing.");
       toast({
         title: "OCR processing failed",
-        description: "An error occurred while processing your files",
+        description: error instanceof Error ? error.message : "An error occurred while processing your files",
         variant: "destructive",
       });
     } finally {
@@ -98,7 +99,7 @@ export default function OCRTool() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${filename}_extracted.txt`;
+    a.download = `${filename.replace(/\.[^/.]+$/, "")}_extracted.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -116,7 +117,7 @@ export default function OCRTool() {
             OCR - Optical Character Recognition
           </CardTitle>
           <CardDescription>
-            Extract text from images and scanned documents. Supports multiple languages and formats.
+            Extract text from images and scanned documents. Powered by Tesseract.js.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -136,7 +137,7 @@ export default function OCRTool() {
               className="w-full"
             >
               <FileText className="w-4 h-4 mr-2" />
-              Extract Text
+              {status === "processing" ? "Processing..." : "Extract Text"}
             </Button>
           </div>
         </CardContent>
@@ -148,10 +149,10 @@ export default function OCRTool() {
             <Card key={index} className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg truncate" title={files[index]?.name}>
                     Extracted Text - {files[index]?.name}
                   </CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
                     <span>Confidence: {(result.confidence).toFixed(1)}%</span>
                     <span>Lang: {result.language.toUpperCase()}</span>
                   </div>
