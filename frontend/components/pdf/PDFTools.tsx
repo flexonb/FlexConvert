@@ -11,6 +11,7 @@ import {
   Minus,
   Droplets,
   Image as ImageIcon,
+  FileInput,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FileDropZone from "../shared/FileDropZone";
@@ -89,6 +90,15 @@ export default function PDFTools() {
       minFiles: 1,
       maxFiles: 1,
       action: () => processFiles(files, "remove-pages"),
+    },
+    {
+      id: "extract-range",
+      title: "Extract Pages",
+      description: "Extract a page range to a new PDF",
+      icon: FileInput,
+      minFiles: 1,
+      maxFiles: 1,
+      action: () => processFiles(files, "extract-range"),
     },
     {
       id: "watermark",

@@ -77,6 +77,17 @@ export default function PDFConfigDialog({
           return;
         }
         break;
+
+      case "extract-range":
+        if (!options.pageRange) {
+          setValidationError("Page range is required");
+          return;
+        }
+        if (options.pageRange.start < 0 || options.pageRange.end >= pageCount || options.pageRange.start > options.pageRange.end) {
+          setValidationError(`Invalid page range. Valid range is 1-${pageCount} (inclusive).`);
+          return;
+        }
+        break;
     }
     
     onConfirm(options);
@@ -241,6 +252,56 @@ export default function PDFConfigDialog({
                 Must include all {pageCount} pages in your desired order
               </p>
             </div>
+          </div>
+        );
+
+      case "extract-range":
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="range-start">Start Page (1-indexed) *</Label>
+                <Input
+                  id="range-start"
+                  type="number"
+                  min={1}
+                  max={pageCount}
+                  defaultValue={1}
+                  onChange={(e) => {
+                    const start1 = Math.max(1, Math.min(pageCount, parseInt(e.target.value) || 1));
+                    setOptions(prev => ({ 
+                      ...prev, 
+                      pageRange: { start: start1 - 1, end: prev.pageRange?.end ?? (pageCount - 1) } 
+                    }));
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="range-end">End Page (1-indexed) *</Label>
+                <Input
+                  id="range-end"
+                  type="number"
+                  min={1}
+                  max={pageCount}
+                  defaultValue={pageCount}
+                  onChange={(e) => {
+                    const end1 = Math.max(1, Math.min(pageCount, parseInt(e.target.value) || pageCount));
+                    setOptions(prev => ({ 
+                      ...prev, 
+                      pageRange: { start: prev.pageRange?.start ?? 0, end: end1 - 1 } 
+                    }));
+                  }}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">
+              Extracts pages in the inclusive range. Example: 2–5 will extract pages 2, 3, 4, and 5.
+            </p>
+            {options.pageRange && (
+              <p className="text-xs text-gray-500">
+                Selected: {options.pageRange.start + 1} – {options.pageRange.end + 1} of {pageCount}
+              </p>
+            )}
           </div>
         );
 

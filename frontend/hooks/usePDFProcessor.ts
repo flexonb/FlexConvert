@@ -13,7 +13,8 @@ type PDFOperation =
   | "add-pages"
   | "remove-pages"
   | "watermark"
-  | "to-images";
+  | "to-images"
+  | "extract-range";
 
 export function usePDFProcessor() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
@@ -45,7 +46,7 @@ export function usePDFProcessor() {
       }
     }
 
-    const configRequiredOps = ["rotate", "watermark", "to-images", "remove-pages", "add-pages", "reorder"];
+    const configRequiredOps = ["rotate", "watermark", "to-images", "remove-pages", "add-pages", "reorder", "extract-range"];
     if (configRequiredOps.includes(operation) && !options) {
       try {
         const info = await PDFProcessor.getPDFInfo(files[0]);
@@ -110,6 +111,9 @@ export function usePDFProcessor() {
           case "to-images":
             result = await PDFProcessor.convertToImages(files[0], options);
             break;
+          case "extract-range":
+            result = await PDFProcessor.extractPages(files[0], options!);
+            break;
           default:
             throw new Error(`Unsupported operation: ${operation}`);
         }
@@ -147,7 +151,7 @@ export function usePDFProcessor() {
         const url = URL.createObjectURL(result);
         const a = document.createElement("a");
         a.href = url;
-        a.download = getOutputFilename(operation, files[0].name);
+        a.download = getOutputFilename(operation, files[0].name, options);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -166,12 +170,16 @@ export function usePDFProcessor() {
       console.error("PDF processing error:", error);
       setStatus("error");
 
-      await backend.analytics.trackUsage({
-        toolCategory: "pdf",
-        toolName: operation,
-        fileCount: files.length,
-        success: false,
-      });
+      try {
+        await backend.analytics.trackUsage({
+          toolCategory: "pdf",
+          toolName: operation,
+          fileCount: files.length,
+          success: false,
+        });
+      } catch (e) {
+        console.error("Failed to track usage:", e);
+      }
 
       recordToolUsage("pdf", operation);
 
@@ -224,7 +232,7 @@ export function usePDFProcessor() {
   };
 }
 
-function getOutputFilename(operation: PDFOperation, originalName: string): string {
+function getOutputFilename(operation: PDFOperation, originalName: string, options?: PDFProcessingOptions): string {
   const baseName = originalName.replace(/\.pdf$/i, "");
   switch (operation) {
     case "merge":
@@ -241,6 +249,11 @@ function getOutputFilename(operation: PDFOperation, originalName: string): strin
       return `${baseName}_pages_removed.pdf`;
     case "watermark":
       return `${baseName}_watermarked.pdf`;
+    case "extract-range": {
+      const s = (options?.pageRange?.start ?? 0) + 1;
+      const e = (options?.pageRange?.end ?? 0) + 1;
+      return `${baseName}_pages_${s}-${e}.pdf`;
+    }
     default:
       return `${baseName}_processed.pdf`;
   }

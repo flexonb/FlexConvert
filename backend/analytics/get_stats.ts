@@ -29,7 +29,7 @@ function buildWhereClause(params: { days?: number; category?: string }) {
   const args: (string | number | boolean | Date | null)[] = [];
   if (params.days && params.days > 0) {
     args.push(params.days);
-    conds.push(`timestamp >= NOW() - ($${args.length}::int || ' days')::interval`);
+    conds.push(`created_at >= NOW() - ($${args.length}::int || ' days')::interval`);
   }
   if (params.category) {
     args.push(params.category);
@@ -80,11 +80,11 @@ export const getStats = api<GetStatsParams, GetStatsResponse>(
 
     const series = await analyticsDB.rawQueryAll<{ day: string; count: string }>(
       `
-      SELECT to_char(date_trunc('day', timestamp), 'YYYY-MM-DD') AS day, COUNT(*) AS count
+      SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day, COUNT(*) AS count
       FROM usage_stats
       ${clause}
-      GROUP BY day
-      ORDER BY day ASC
+      GROUP BY 1
+      ORDER BY 1 ASC
     `,
       ...args
     );

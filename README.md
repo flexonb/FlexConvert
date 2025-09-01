@@ -5,55 +5,56 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 ## Features
 
 ### PDF Tools
-- **Merge PDFs**: Combine multiple PDF files into one
-- **Split PDF**: Split a PDF into individual pages  
-- **Compress PDF**: Reduce PDF file size
-- **Rotate Pages**: Rotate PDF pages clockwise
-- **Reorder Pages**: Change the order of PDF pages
-- **Add/Remove Pages**: Insert blank pages or delete specific pages
-- **Add Watermark**: Add text or image watermarks
-- **PDF to Images**: Convert PDF pages to JPG/PNG
+- Merge PDFs: Combine multiple PDF files into one
+- Split PDF: Split a PDF into individual pages  
+- Compress PDF: Reduce PDF file size
+- Rotate Pages: Rotate PDF pages clockwise
+- Reorder Pages: Change the order of PDF pages
+- Add/Remove Pages: Insert blank pages or delete specific pages
+- Extract Pages: Extract a specific page range into a new PDF
+- Add Watermark: Add text or image watermarks
+- PDF to Images: Convert PDF pages to JPG/PNG
 
 ### Image Tools
-- **Resize Images**: Change image dimensions
-- **Crop Images**: Crop images to specific areas
-- **Compress Images**: Reduce image file size
-- **Rotate/Flip**: Rotate and flip images
-- **Format Conversion**: PNG ↔ JPG ↔ WebP conversion
-- **Grayscale**: Convert images to grayscale
-- **Color Adjustment**: Brightness, contrast, saturation
-- **Text Overlay**: Add text overlays to images
+- Resize Images: Change image dimensions
+- Crop Images: Crop images to specific areas
+- Compress Images: Reduce image file size
+- Rotate/Flip: Rotate and flip images
+- Format Conversion: PNG ↔ JPG ↔ WebP conversion
+- Grayscale: Convert images to grayscale
+- Color Adjustment: Brightness, contrast, saturation
+- Text Overlay: Add text overlays to images
 
 ### File Conversion Tools
-- **Document to PDF**: DOCX, PPTX, XLSX, TXT → PDF
-- **PDF to Document**: PDF → DOCX (basic)
-- **Images to PDF**: Combine images into PDF
-- **Video Conversion**: Convert between video formats
-- **Audio Conversion**: Convert between audio formats
-- **Archive Extraction**: Extract ZIP/RAR files
+- Document to PDF: DOCX, PPTX, XLSX, TXT → PDF
+- PDF to Document: PDF → DOCX (basic)
+- Images to PDF: Combine images into PDF
+- Video Conversion: Convert between video formats
+- Audio Conversion: Convert between audio formats
+- Archive Extraction: Extract ZIP/RAR files
 
 ## Technology Stack
 
 ### Frontend
-- **React** with TypeScript
-- **Tailwind CSS** for styling
-- **shadcn/ui** components
-- **Vite** for build tooling
-- **React Query** for state management
+- React with TypeScript
+- Tailwind CSS for styling
+- shadcn/ui components
+- Vite for build tooling
+- React Query for state management
 
 ### Backend (Lightweight Analytics)
-- **Encore.ts** for API framework
-- **PostgreSQL** for usage statistics
+- Encore.ts for API framework
+- PostgreSQL for usage statistics
 - No file processing or storage
 
 ### Processing Libraries (Client-side)
-- **pdf-lib**: PDF manipulation
-- **jsPDF**: PDF generation
-- **PDF.js**: PDF rendering
-- **Pica**: Image resizing
-- **BrowserImageCompression**: Image compression
-- **FFmpeg.wasm**: Video/audio processing
-- **FileSaver.js**: File downloads
+- pdf-lib: PDF manipulation
+- jsPDF: PDF generation
+- PDF.js: PDF rendering
+- Pica: Image resizing
+- BrowserImageCompression: Image compression
+- FFmpeg.wasm: Video/audio processing
+- FileSaver.js: File downloads
 
 ## Local Development
 
@@ -100,10 +101,10 @@ The application uses Encore.ts which automatically manages the database. On firs
 
 ## Privacy & Security
 
-- **100% Offline Processing**: All file operations happen in your browser
-- **No File Uploads**: Files never leave your device
-- **Anonymous Analytics**: Only tool usage counts are tracked
-- **No User Data**: No personal information is collected or stored
+- 100% Offline Processing: All file operations happen in your browser
+- No File Uploads: Files never leave your device
+- Anonymous Analytics: Only tool usage counts are tracked
+- No User Data: No personal information is collected or stored
 
 ## Browser Compatibility
 
@@ -115,9 +116,9 @@ The application uses Encore.ts which automatically manages the database. On firs
 ## File Size Limits
 
 Processing is limited by your browser's memory:
-- **PDF Files**: Up to 100MB recommended
-- **Images**: Up to 50MB per image
-- **Videos**: Up to 500MB (using streaming when possible)
+- PDF Files: Up to 100MB recommended
+- Images: Up to 50MB per image
+- Videos: Up to 500MB (using streaming when possible)
 
 ## Architecture
 
@@ -134,13 +135,20 @@ The lightweight Encore.ts backend only tracks:
 - Success/failure rates
 - No file content or user identification
 
+## Recent Improvements
+
+- Added "Extract Pages" tool to export a specific page range from a PDF to a new file.
+- Hardened analytics backend with input validation and safer SQL.
+- Fixed time series grouping and renamed timestamp column to created_at for clarity.
+- UI polish with additional tool tile and improved configuration dialog.
+
 ## Future Enhancements
 
-- **OCR Integration**: Text extraction from images/PDFs
-- **Watermark Designer**: Visual watermark creation tool
-- **Batch Templates**: Save and reuse processing configurations
-- **Advanced Cropping**: Interactive crop tool
-- **Progressive Web App**: Offline installation support
+- OCR Integration: Text extraction from images/PDFs
+- Watermark Designer: Visual watermark creation tool
+- Batch Templates: Save and reuse processing configurations
+- Advanced Cropping: Interactive crop tool
+- Progressive Web App: Offline installation support
 
 ## Contributing
 
