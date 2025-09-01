@@ -163,9 +163,18 @@ export function useConverter() {
 
       recordToolUsage("convert", conversionType);
 
+      let message = "An unknown error occurred during conversion.";
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'string') {
+        message = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        message = String((error as { message: unknown }).message);
+      }
+
       toast({
         title: "Conversion failed",
-        description: error instanceof Error ? error.message : "An error occurred while converting your files",
+        description: message,
         variant: "destructive",
       });
     }

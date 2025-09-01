@@ -341,38 +341,59 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
   let i = 0;
 
   for (const f of files) {
-    const arrayBuffer = await f.arrayBuffer();
-    const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
-    const paragraphs: Paragraph[] = [];
+    try {
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
+      const paragraphs: Paragraph[] = [];
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent();
-      const strings = content.items
-        .filter((item: any): item is { str: string } => 'str' in item && typeof item.str === 'string')
-        .map((item: { str: string }) => item.str)
-        .join(" ");
-      
-      const sanitizedStrings = sanitizeTextForDocx(strings);
-      
-      paragraphs.push(new Paragraph({ children: [new TextRun(sanitizedStrings)] }));
-      onProgress?.(((pageNum - 0.5) / pdf.numPages) * 100);
-    }
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        
+        const strings = content.items
+          .filter((item: any): item is { str: string } => 'str' in item && typeof item.str === 'string')
+          .map((item: { str: string }) => item.str)
+          .join(" ");
+        
+        const sanitizedStrings = sanitizeTextForDocx(strings);
+        
+        if (sanitizedStrings.trim().length > 0) {
+          paragraphs.push(new Paragraph({ children: [new TextRun(sanitizedStrings)] }));
+        }
+        
+        const fileProgress = pageNum / pdf.numPages;
+        const totalProgress = ((i + fileProgress) / files.length) * 100;
+        onProgress?.(totalProgress);
+      }
 
-    const doc = new Document({
-      sections: [
-        {
+      if (paragraphs.length === 0) {
+        paragraphs.push(new Paragraph({ children: [new TextRun("(no text extracted)")] }));
+      }
+
+      const doc = new Document({
+        sections: [{
           properties: {},
-          children: paragraphs.length > 0 ? paragraphs : [new Paragraph({ children: [new TextRun("(no text)")] })],
-        },
-      ],
-    });
+          children: paragraphs,
+        }],
+      });
 
-    const blob = await Packer.toBlob(doc);
-    const base = f.name.replace(/\.pdf$/i, "");
-    results.push({ blob, suggestedName: `${base}.docx` });
-    i++;
-    onProgress?.((i / files.length) * 100);
+      const blob = await Packer.toBlob(doc);
+      const base = f.name.replace(/\.pdf$/i, "");
+      results.push({ blob, suggestedName: `${base}.docx` });
+      i++;
+    } catch (error) {
+      console.error(`Failed to convert ${f.name}:`, error);
+      let message = `Conversion of "${f.name}" failed.`;
+      if (error instanceof Error) {
+        if (error.name === 'PasswordException') {
+          message = `Conversion of "${f.name}" failed because it is password-protected.`;
+        } else {
+          message = `Error converting "${f.name}": ${error.message}`;
+        }
+      }
+      // Re-throw a more informative error
+      throw new Error(message);
+    }
   }
 
   return results;
