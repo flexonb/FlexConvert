@@ -12,11 +12,10 @@ import {
   Type,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import FileDropZone from "../shared/FileDropZone";
 import ProcessingStatus from "../shared/ProcessingStatus";
 import { useImageProcessor } from "../../hooks/useImageProcessor";
 import ToolCard from "../shared/ToolCard";
-import SelectedFilesList from "../shared/SelectedFilesList";
+import AdvancedDropZone from "../shared/AdvancedDropZone";
 
 export default function ImageTools() {
   const [files, setFiles] = useState<File[]>([]);
@@ -36,9 +35,6 @@ export default function ImageTools() {
 
   const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp"];
 
-  const removeFileAt = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
-  const clearFiles = () => setFiles([]);
-
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -50,11 +46,7 @@ export default function ImageTools() {
           <CardDescription>Select images and choose a tool. All processing happens locally in your browser.</CardDescription>
         </CardHeader>
         <CardContent>
-          <FileDropZone onFilesSelected={setFiles} acceptedTypes={acceptedImageTypes} maxFiles={20} className="mb-4" />
-
-          {files.length > 0 && (
-            <SelectedFilesList files={files} onRemove={removeFileAt} accent="green" label="Selected Images" />
-          )}
+          <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={acceptedImageTypes} maxFiles={20} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />
 
@@ -73,12 +65,6 @@ export default function ImageTools() {
               />
             ))}
           </div>
-
-          {files.length > 0 && (
-            <div className="flex justify-between mt-2">
-              <Button size="sm" variant="outline" onClick={clearFiles}>Clear Files</Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

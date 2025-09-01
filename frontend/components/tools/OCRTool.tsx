@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Eye, Copy, Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import FileDropZone from "../shared/FileDropZone";
+import AdvancedDropZone from "../shared/AdvancedDropZone";
 import ProcessingStatus from "../shared/ProcessingStatus";
 
 interface OCRResult {
@@ -110,30 +110,12 @@ export default function OCRTool() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FileDropZone 
+          <AdvancedDropZone 
             onFilesSelected={setFiles} 
             acceptedTypes={acceptedTypes}
             maxFiles={5}
             className="mb-4"
           />
-
-          {files.length > 0 && (
-            <div className="bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-900 rounded-lg p-3">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Selected Images ({files.length})
-              </h3>
-              <div className="space-y-2">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <span className="truncate">{file.name}</span>
-                    <span className="text-gray-500">
-                      {(file.size / 1024 / 1024).toFixed(1)} MB
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <ProcessingStatus status={status} progress={progress} />
 
@@ -141,16 +123,11 @@ export default function OCRTool() {
             <Button 
               onClick={processOCR}
               disabled={files.length === 0 || status === "processing"}
-              className="flex-1"
+              className="w-full"
             >
               <FileText className="w-4 h-4 mr-2" />
               Extract Text
             </Button>
-            {files.length > 0 && (
-              <Button variant="outline" onClick={() => setFiles([])}>
-                Clear
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>

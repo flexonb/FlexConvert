@@ -1,5 +1,5 @@
 import React from "react";
-import { Heart, Github, Twitter, Shield } from "lucide-react";
+import { Heart, Github, Twitter, Shield, Wand2 } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -28,7 +28,10 @@ export default function Footer() {
               <li>PDF Tools</li>
               <li>Image Processing</li>
               <li>File Conversion</li>
-              <li>Batch Operations</li>
+              <li className="flex items-center gap-2">
+                <Wand2 className="w-3 h-3" />
+                Advanced Tools
+              </li>
             </ul>
           </div>
 

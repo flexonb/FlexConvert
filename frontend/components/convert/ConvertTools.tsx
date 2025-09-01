@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCcw, FileText, Image, File, Video, Music, Archive } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import FileDropZone from "../shared/FileDropZone";
 import ProcessingStatus from "../shared/ProcessingStatus";
 import { useConverter } from "../../hooks/useConverter";
 import ToolCard from "../shared/ToolCard";
-import SelectedFilesList from "../shared/SelectedFilesList";
+import AdvancedDropZone from "../shared/AdvancedDropZone";
 
 export default function ConvertTools() {
   const [files, setFiles] = useState<File[]>([]);
@@ -24,9 +22,6 @@ export default function ConvertTools() {
     { id: "extract-zip", title: "Extract Archive", description: "Extract ZIP/RAR files", icon: Archive, accepts: [".zip", ".rar"], action: () => convertFiles(files, "extract-zip") },
   ];
 
-  const removeFileAt = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
-  const clearFiles = () => setFiles([]);
-
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -38,11 +33,7 @@ export default function ConvertTools() {
           <CardDescription>Convert between different file formats. All conversions happen locally in your browser.</CardDescription>
         </CardHeader>
         <CardContent>
-          <FileDropZone onFilesSelected={setFiles} maxFiles={10} className="mb-4" />
-
-          {files.length > 0 && (
-            <SelectedFilesList files={files} onRemove={removeFileAt} accent="purple" label="Selected Files" />
-          )}
+          <AdvancedDropZone onFilesSelected={setFiles} maxFiles={10} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />
 
@@ -61,12 +52,6 @@ export default function ConvertTools() {
               />
             ))}
           </div>
-
-          {files.length > 0 && (
-            <div className="flex justify-between mt-2">
-              <Button size="sm" variant="outline" onClick={clearFiles}>Clear Files</Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   onOpenSidebar?: () => void;
-  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats") => void;
+  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats" | "tools") => void;
 }
 
 export default function Header({ onOpenSidebar, onNavigate }: HeaderProps) {
@@ -26,11 +26,11 @@ export default function Header({ onOpenSidebar, onNavigate }: HeaderProps) {
               <Menu className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 group">
               <div className="relative h-9 w-9 rounded-xl overflow-hidden shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 animate-pulse" />
                 <div className="absolute inset-[2px] rounded-lg bg-white dark:bg-gray-900 grid place-items-center">
-                  <Sparkles className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400" />
+                  <Sparkles className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
                 </div>
               </div>
               

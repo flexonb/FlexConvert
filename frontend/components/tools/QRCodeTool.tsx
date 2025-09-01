@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { QrCode, Download, Palette, Settings } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface QRCodeOptions {
   text: string;
@@ -42,6 +43,7 @@ export default function QRCodeTool() {
     }
 
     setIsGenerating(true);
+    setQrCodeUrl(null);
     
     try {
       // Simulate QR code generation (in real implementation, use qrcode library)
@@ -236,7 +238,10 @@ export default function QRCodeTool() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center min-h-[300px] bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
             {qrCodeUrl ? (
-              <div className="text-center space-y-4">
+              <div className={cn(
+                "text-center space-y-4 transition-all duration-500",
+                qrCodeUrl ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              )}>
                 <img 
                   src={qrCodeUrl} 
                   alt="Generated QR Code" 
