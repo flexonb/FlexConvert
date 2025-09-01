@@ -3,6 +3,7 @@ import { Sparkles, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LinkMenu from "./LinkMenu";
 import CategoryDropdownMenu from "./CategoryDropdownMenu";
+import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   onOpenSidebar?: () => void;
@@ -41,12 +42,12 @@ export default function Header({ onOpenSidebar, onNavigate }: HeaderProps) {
             </div>
           </div>
 
-          {/* Centered Category Dropdown Menus */}
           <div className="hidden lg:flex items-center justify-center flex-1">
             <CategoryDropdownMenu onNavigate={onNavigate} />
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <LinkMenu />
           </div>
         </div>

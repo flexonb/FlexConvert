@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, TrendingUp, Activity, BarChart2 } from "lucide-react";
+import { BarChart3, TrendingUp, Activity, BarChart2, RefreshCcw, AlertTriangle } from "lucide-react";
 import backend from "~backend/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import AnimatedCounter from "../shared/AnimatedCounter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type CategoryFilter = "all" | "pdf" | "image" | "convert";
 type RangeFilter = "7" | "30" | "90" | "365" | "all";
@@ -14,13 +16,22 @@ export default function StatsView() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [range, setRange] = useState<RangeFilter>("30");
 
-  const { data: stats, isLoading } = useQuery({
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching
+  } = useQuery({
     queryKey: ["usage-stats", category, range],
     queryFn: () =>
       backend.analytics.getStats({
         category: category === "all" ? undefined : category,
         days: range === "all" ? undefined : Number(range),
       }),
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const topTools = useMemo(() => (stats ? stats.stats.slice(0, 10) : []), [stats]);
@@ -56,6 +67,24 @@ export default function StatsView() {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Failed to load analytics</AlertTitle>
+          <AlertDescription>
+            {(error as Error)?.message || "An unexpected error occurred while fetching stats."}
+          </AlertDescription>
+        </Alert>
+        <Button onClick={() => refetch()} variant="outline" className="gap-2">
+          <RefreshCcw className={isFetching ? "animate-spin w-4 h-4" : "w-4 h-4"} />
+          Retry
+        </Button>
       </div>
     );
   }
@@ -100,6 +129,11 @@ export default function StatsView() {
               <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="ml-1 gap-2">
+            <RefreshCcw className={isFetching ? "animate-spin w-4 h-4" : "w-4 h-4"} />
+            Refresh
+          </Button>
         </div>
       </div>
 
