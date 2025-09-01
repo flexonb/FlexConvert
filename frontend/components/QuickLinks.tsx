@@ -31,12 +31,22 @@ export default function QuickLinks({ onSelectTab }: QuickLinksProps) {
           <Card
             key={l.id}
             className={cn(
-              "p-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-0 shadow hover:shadow-lg transition-all duration-200 group"
+              "relative overflow-hidden p-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/60 dark:border-gray-800/60 shadow hover:shadow-lg transition-all duration-200 group"
             )}
           >
+            {/* accent bar */}
+            <div
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-x-4 -top-[2px] h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                l.accent === "blue" && "bg-gradient-to-r from-blue-500 via-indigo-500 to-transparent",
+                l.accent === "green" && "bg-gradient-to-r from-emerald-500 via-green-500 to-transparent",
+                l.accent === "amber" && "bg-gradient-to-r from-amber-500 via-orange-500 to-transparent"
+              )}
+            />
             <button
               onClick={() => onSelectTab(l.tab)}
-              className="w-full text-left flex items-center gap-3"
+              className="w-full text-left flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-lg"
               aria-label={l.label}
             >
               <div

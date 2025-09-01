@@ -62,7 +62,7 @@ export default function Dashboard() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-blue-950/30 dark:to-indigo-950/50 overflow-hidden">
       <FloatingParticles count={30} />
-      
+
       <Header onOpenSidebar={() => setMobileNavOpen(true)} onNavigate={handleNavigate} />
 
       {/* Enhanced Background */}
@@ -86,7 +86,7 @@ export default function Dashboard() {
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
           style={{
             backgroundImage: `
               radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
@@ -116,8 +116,10 @@ export default function Dashboard() {
           <section className="col-span-12 lg:col-span-9">
             {/* Tip Section */}
             <div className="text-center mb-6">
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                Tip: <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">⌘K or Ctrl + K</kbd> opens the command palette
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-900/60 backdrop-blur text-sm text-gray-600 dark:text-gray-300">
+                <span className="hidden sm:inline">Tip:</span>
+                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">⌘K or Ctrl + K</kbd>
+                opens the command palette
               </div>
             </div>
 

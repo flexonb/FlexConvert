@@ -13,43 +13,43 @@ interface SideNavProps {
 }
 
 const items: { id: NavId; label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string; description: string }[] = [
-  { 
-    id: "pdf", 
-    label: "PDF Tools", 
-    icon: FileText, 
-    color: "text-blue-600 dark:text-blue-400", 
+  {
+    id: "pdf",
+    label: "PDF Tools",
+    icon: FileText,
+    color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
     description: "Merge, split, compress & more"
   },
-  { 
-    id: "image", 
-    label: "Image Tools", 
-    icon: Image, 
-    color: "text-emerald-600 dark:text-emerald-400", 
+  {
+    id: "image",
+    label: "Image Tools",
+    icon: Image,
+    color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-500/10 dark:bg-emerald-500/20",
     description: "Resize, crop, compress & edit"
   },
-  { 
-    id: "convert", 
-    label: "Convert", 
-    icon: RefreshCcw, 
-    color: "text-purple-600 dark:text-purple-400", 
+  {
+    id: "convert",
+    label: "Convert",
+    icon: RefreshCcw,
+    color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-500/10 dark:bg-purple-500/20",
     description: "Transform between formats"
   },
-  { 
-    id: "tools", 
-    label: "Advanced Tools", 
-    icon: Wand2, 
-    color: "text-amber-600 dark:text-amber-400", 
+  {
+    id: "tools",
+    label: "Advanced Tools",
+    icon: Wand2,
+    color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
     description: "QR codes, watermarks & more"
   },
-  { 
-    id: "stats", 
-    label: "Analytics", 
-    icon: BarChart3, 
-    color: "text-orange-600 dark:text-orange-400", 
+  {
+    id: "stats",
+    label: "Analytics",
+    icon: BarChart3,
+    color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-500/10 dark:bg-orange-500/20",
     description: "Usage insights & statistics"
   },
@@ -65,7 +65,7 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
             Tools
           </h4>
         </div>
-        
+
         <ul className="space-y-2">
           {items.map(({ id, label, icon: Icon, color, bgColor, description }) => {
             const isActive = active === id;
@@ -78,7 +78,8 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
                     "hover:bg-gray-50/80 dark:hover:bg-gray-800/50",
                     isActive
                       ? "bg-white dark:bg-gray-800 shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 border border-gray-200/50 dark:border-gray-700/50"
-                      : "border border-transparent"
+                      : "border border-transparent",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60"
                   )}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -91,7 +92,7 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
                       isActive ? color : "text-gray-500 dark:text-gray-400"
                     )} />
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className={cn(
                       "font-semibold text-sm transition-colors duration-200",
@@ -105,11 +106,15 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
                   </div>
 
                   {/* Active indicator */}
-                  {isActive && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className={cn("w-2 h-2 rounded-full", bgColor.replace('/10', '/60').replace('/20', '/60'))} />
-                    </div>
-                  )}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full transition-opacity",
+                        isActive ? "opacity-100" : "opacity-0",
+                        isActive ? bgColor.replace('/10', '/70').replace('/20', '/70') : ""
+                      )}
+                    />
+                  </div>
                 </button>
               </li>
             );
@@ -125,7 +130,7 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
           </h4>
           <Palette className="w-3.5 h-3.5 text-gray-400" />
         </div>
-        
+
         <Button
           variant="outline"
           className="w-full justify-start gap-3 h-auto py-2.5 px-3 border-gray-200/50 dark:border-gray-700/50 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5 transition-all duration-200"
