@@ -2,23 +2,26 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
-
-type ImageOperation =
-  | "resize"
-  | "crop"
-  | "compress"
-  | "rotate"
-  | "flip"
-  | "convert"
-  | "grayscale"
-  | "adjust"
-  | "text-overlay";
+import {
+  adjustImage,
+  compressImage,
+  convertFormat,
+  cropImage,
+  flipImage,
+  grayscaleImage,
+  resizeImage,
+  rotateImage,
+  textOverlay,
+  type ImageOperation,
+} from "../utils/imageProcessor";
 
 export function useImageProcessor() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [resultFiles, setResultFiles] = useState<Blob[]>([]);
   const { toast } = useToast();
+
+  const updateProgress = (val: number) => setProgress(Math.max(0, Math.min(100, Math.round(val))));
 
   const processFiles = async (files: File[], operation: ImageOperation) => {
     if (files.length === 0) {
@@ -31,7 +34,7 @@ export function useImageProcessor() {
     }
 
     setStatus("processing");
-    setProgress(0);
+    updateProgress(0);
 
     try {
       await backend.analytics.trackUsage({
@@ -40,23 +43,54 @@ export function useImageProcessor() {
         fileCount: files.length,
       });
 
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 15, 90));
-      }, 300);
+      const results: Blob[] = [];
+      let i = 0;
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      for (const file of files) {
+        i++;
+        // Basic MIME/type validation
+        if (!file.type.startsWith("image/")) {
+          throw new Error(`"${file.name}" is not an image file.`);
+        }
 
-      clearInterval(progressInterval);
-      setProgress(100);
+        let blob: Blob;
+        switch (operation) {
+          case "resize":
+            blob = await resizeImage(file, { maxWidth: 1920, maxHeight: 1920 });
+            break;
+          case "crop":
+            blob = await cropImage(file, { mode: "center-square" });
+            break;
+          case "compress":
+            blob = await compressImage(file, { quality: 0.7 });
+            break;
+          case "rotate":
+            blob = await rotateImage(file, { degrees: 90 });
+            break;
+          case "flip":
+            blob = await flipImage(file, { horizontal: true, vertical: false });
+            break;
+          case "convert":
+            blob = await convertFormat(file, { format: "webp", quality: 0.9 });
+            break;
+          case "grayscale":
+            blob = await grayscaleImage(file);
+            break;
+          case "adjust":
+            blob = await adjustImage(file, { brightness: 1.1, contrast: 1.05, saturation: 1.05 });
+            break;
+          case "text-overlay":
+            blob = await textOverlay(file, { text: "FlexConvert", opacity: 0.75 });
+            break;
+          default:
+            throw new Error(`Unsupported operation: ${operation as string}`);
+        }
 
-      const results = files.map(
-        (file) =>
-          new Blob([`Processed ${operation} result for ${file.name}`], {
-            type: "image/jpeg",
-          })
-      );
+        results.push(blob);
+        updateProgress((i / files.length) * 100);
+      }
+
       setResultFiles(results);
-
       setStatus("success");
 
       recordToolUsage("image", operation);
@@ -66,11 +100,21 @@ export function useImageProcessor() {
         description: `Successfully processed ${files.length} image(s) with ${operation}`,
       });
 
+      // Auto-download results
       results.forEach((blob, index) => {
         const url = URL.createObjectURL(blob);
+        const ext = blob.type.includes("png")
+          ? "png"
+          : blob.type.includes("webp")
+          ? "webp"
+          : blob.type.includes("gif")
+          ? "gif"
+          : blob.type.includes("bmp")
+          ? "bmp"
+          : "jpg";
         const a = document.createElement("a");
         a.href = url;
-        a.download = `processed-${operation}-${index + 1}.jpg`;
+        a.download = `processed-${operation}-${index + 1}.${ext}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -80,18 +124,23 @@ export function useImageProcessor() {
       console.error("Image processing error:", error);
       setStatus("error");
 
-      await backend.analytics.trackUsage({
-        toolCategory: "image",
-        toolName: operation,
-        fileCount: files.length,
-        success: false,
-      });
+      try {
+        await backend.analytics.trackUsage({
+          toolCategory: "image",
+          toolName: operation,
+          fileCount: files.length,
+          success: false,
+        });
+      } catch (e) {
+        console.error("Failed to track usage:", e);
+      }
 
       recordToolUsage("image", operation);
 
       toast({
         title: "Processing failed",
-        description: "An error occurred while processing your image files",
+        description:
+          error instanceof Error ? error.message : "An error occurred while processing your image files",
         variant: "destructive",
       });
     }

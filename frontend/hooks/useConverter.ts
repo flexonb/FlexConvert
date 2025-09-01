@@ -2,6 +2,17 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
+import {
+  convertAudio,
+  convertVideo,
+  docxToPdf,
+  imagesToPdf,
+  pdfToDocx,
+  pptxToPdf,
+  txtToPdf,
+  xlsxToPdf,
+  extractZip,
+} from "../utils/fileConverters";
 
 type ConversionType =
   | "docx-to-pdf"
@@ -32,6 +43,7 @@ export function useConverter() {
 
     setStatus("processing");
     setProgress(0);
+    setResultFiles([]);
 
     try {
       await backend.analytics.trackUsage({
@@ -40,44 +52,80 @@ export function useConverter() {
         fileCount: files.length,
       });
 
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 12, 90));
-      }, 400);
+      const results: { blob: Blob; suggestedName: string }[] = [];
+      const update = (v: number) => setProgress(Math.max(0, Math.min(100, Math.round(v))));
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      switch (conversionType) {
+        case "txt-to-pdf": {
+          const out = await txtToPdf(files, update);
+          results.push(...out);
+          break;
+        }
+        case "images-to-pdf": {
+          const out = await imagesToPdf(files, update);
+          results.push(...out);
+          break;
+        }
+        case "docx-to-pdf": {
+          const out = await docxToPdf(files, update);
+          results.push(...out);
+          break;
+        }
+        case "xlsx-to-pdf": {
+          const out = await xlsxToPdf(files, update);
+          results.push(...out);
+          break;
+        }
+        case "pptx-to-pdf": {
+          const out = await pptxToPdf(files, update);
+          results.push(...out);
+          break;
+        }
+        case "pdf-to-docx": {
+          const out = await pdfToDocx(files, update);
+          results.push(...out);
+          break;
+        }
+        case "video-convert": {
+          let i = 0;
+          for (const f of files) {
+            const { blob, ext } = await convertVideo(f, (p) => {
+              // distribute progress across files
+              const base = (i / files.length) * 100;
+              update(base + (p / files.length));
+            });
+            i++;
+            const baseName = f.name.replace(/\.[^/.]+$/, "");
+            results.push({ blob, suggestedName: `${baseName}.webm` });
+            update((i / files.length) * 100);
+          }
+          break;
+        }
+        case "audio-convert": {
+          let i = 0;
+          for (const f of files) {
+            const { blob, ext } = await convertAudio(f, (p) => {
+              const base = (i / files.length) * 100;
+              update(base + (p / files.length));
+            });
+            i++;
+            const baseName = f.name.replace(/\.[^/.]+$/, "");
+            results.push({ blob, suggestedName: `${baseName}.${ext}` });
+            update((i / files.length) * 100);
+          }
+          break;
+        }
+        case "extract-zip": {
+          const out = await extractZip(files, update);
+          results.push(...out);
+          break;
+        }
+        default:
+          throw new Error(`Unsupported conversion type: ${conversionType}`);
+      }
 
-      clearInterval(progressInterval);
+      setResultFiles(results.map((r) => r.blob));
       setProgress(100);
-
-      const getOutputExtension = (type: ConversionType) => {
-        if (type.includes("to-pdf")) return "pdf";
-        if (type === "pdf-to-docx") return "docx";
-        if (type === "video-convert") return "mp4";
-        if (type === "audio-convert") return "mp3";
-        if (type === "extract-zip") return "txt";
-        return "pdf";
-      };
-
-      const extension = getOutputExtension(conversionType);
-      const mimeType =
-        extension === "pdf"
-          ? "application/pdf"
-          : extension === "docx"
-          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          : extension === "mp4"
-          ? "video/mp4"
-          : extension === "mp3"
-          ? "audio/mpeg"
-          : "text/plain";
-
-      const results = files.map(
-        (file) =>
-          new Blob([`Converted ${conversionType} result for ${file.name}`], {
-            type: mimeType,
-          })
-      );
-      setResultFiles(results);
-
       setStatus("success");
 
       recordToolUsage("convert", conversionType);
@@ -87,11 +135,12 @@ export function useConverter() {
         description: `Successfully converted ${files.length} file(s) using ${conversionType}`,
       });
 
-      results.forEach((blob, index) => {
+      // Auto-download
+      results.forEach(({ blob, suggestedName }, index) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `converted-${index + 1}.${extension}`;
+        a.download = suggestedName || `converted-${index + 1}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -101,18 +150,22 @@ export function useConverter() {
       console.error("Conversion error:", error);
       setStatus("error");
 
-      await backend.analytics.trackUsage({
-        toolCategory: "convert",
-        toolName: conversionType,
-        fileCount: files.length,
-        success: false,
-      });
+      try {
+        await backend.analytics.trackUsage({
+          toolCategory: "convert",
+          toolName: conversionType,
+          fileCount: files.length,
+          success: false,
+        });
+      } catch (e) {
+        console.error("Failed to track usage:", e);
+      }
 
       recordToolUsage("convert", conversionType);
 
       toast({
         title: "Conversion failed",
-        description: "An error occurred while converting your files",
+        description: error instanceof Error ? error.message : "An error occurred while converting your files",
         variant: "destructive",
       });
     }
