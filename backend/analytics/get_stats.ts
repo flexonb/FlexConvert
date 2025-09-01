@@ -30,7 +30,7 @@ function buildWhereClause(params: { days?: number; category?: string }) {
 
   if (params.days && params.days > 0) {
     args.push(params.days);
-    conds.push(`created_at >= NOW() - ($${args.length}::int || ' days')::interval`);
+    conds.push(`created_at >= NOW() - make_interval(days => $${args.length})`);
   }
 
   if (params.category) {
@@ -81,9 +81,9 @@ export const getStats = api<GetStatsParams, GetStatsResponse>(
       ...args
     );
 
-    const series = await analyticsDB.rawQueryAll<{ day: string; count: string }>(
+    const series = await analyticsDB.rawQueryAll<{ day: Date; count: string }>(
       `
-      SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day, COUNT(*) AS count
+      SELECT date_trunc('day', created_at) AS day, COUNT(*) AS count
       FROM usage_stats
       ${clause}
       GROUP BY 1
@@ -103,7 +103,7 @@ export const getStats = api<GetStatsParams, GetStatsResponse>(
       })),
       totalOperations: parseInt(totalOperationsRow?.count || "0", 10),
       timeSeries: series.map((s) => ({
-        date: s.day,
+        date: s.day.toISOString().substring(0, 10),
         count: parseInt(s.count, 10),
       })),
     };
