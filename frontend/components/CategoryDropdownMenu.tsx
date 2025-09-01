@@ -26,12 +26,15 @@ import {
   Type,
   Video,
   Music,
-  File
+  File,
+  Wand2,
+  Eye,
+  QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CategoryDropdownMenuProps {
-  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats") => void;
+  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats" | "tools") => void;
 }
 
 export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMenuProps) {
@@ -71,7 +74,13 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
     { icon: Archive, label: "Extract Archive", desc: "ZIP/RAR extraction" },
   ];
 
-  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats") => {
+  const advancedTools = [
+    { icon: Eye, label: "OCR Scanner", desc: "Extract text from images" },
+    { icon: QrCode, label: "QR Generator", desc: "Create custom QR codes" },
+    { icon: Droplets, label: "Watermark Designer", desc: "Design custom watermarks" },
+  ];
+
+  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
     onNavigate?.(tab);
   };
 
@@ -194,6 +203,49 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
                 >
                   <div className="flex items-center gap-2">
                     <tool.icon className="h-4 w-4 text-purple-500" />
+                    <div className="text-sm font-medium leading-none text-gray-900 dark:text-white">
+                      {tool.label}
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 text-sm leading-snug text-gray-600 dark:text-gray-400">
+                    {tool.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+
+        {/* Advanced Tools */}
+        <NavigationMenuItem>
+          <NavigationMenuTrigger className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300">
+            <Wand2 className="w-4 h-4" />
+            Tools
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <div className="grid gap-3 p-6 w-[400px] lg:w-[500px] lg:grid-cols-2">
+              <div className="row-span-3">
+                <div 
+                  onClick={() => handleNavigate("tools")}
+                  className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-amber-500/20 to-amber-600/40 p-6 no-underline outline-none focus:shadow-md cursor-pointer hover:bg-gradient-to-b hover:from-amber-500/30 hover:to-amber-600/50 transition-all"
+                >
+                  <Wand2 className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  <div className="mb-2 mt-4 text-lg font-medium text-amber-900 dark:text-amber-100">
+                    Advanced Tools
+                  </div>
+                  <p className="text-sm leading-tight text-amber-700 dark:text-amber-200">
+                    Professional tools for OCR, QR code generation, watermark design and more.
+                  </p>
+                </div>
+              </div>
+              {advancedTools.map((tool, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleNavigate("tools")}
+                  className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <tool.icon className="h-4 w-4 text-amber-500" />
                     <div className="text-sm font-medium leading-none text-gray-900 dark:text-white">
                       {tool.label}
                     </div>

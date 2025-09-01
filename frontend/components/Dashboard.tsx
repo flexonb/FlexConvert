@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FileText, Image, RefreshCcw, BarChart3 } from "lucide-react";
+import { FileText, Image, RefreshCcw, BarChart3, Wand2 } from "lucide-react";
 import Header from "./Header";
 import PDFTools from "./pdf/PDFTools";
 import ImageTools from "./image/ImageTools";
 import ConvertTools from "./convert/ConvertTools";
 import StatsView from "./stats/StatsView";
+import ToolsView from "./tools/ToolsView";
 import Footer from "./Footer";
 import CommandPalette from "./CommandPalette";
 import QuickActionFab from "./QuickActionFab";
@@ -14,6 +15,7 @@ import type { ToolCategory } from "../utils/recentTools";
 import SideNav from "./SideNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import QuickLinks from "./QuickLinks";
+import FloatingParticles from "./shared/FloatingParticles";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("pdf");
@@ -25,7 +27,7 @@ export default function Dashboard() {
     const root = document.documentElement;
     let t = 0;
     const animate = () => {
-      t += 0.003;
+      t += 0.002;
       root.style.setProperty("--blob-x", `${Math.sin(t) * 15 + 50}%`);
       root.style.setProperty("--blob-y", `${Math.cos(t * 0.8) * 15 + 50}%`);
       root.style.setProperty("--blob2-x", `${Math.cos(t * 1.2) * 12 + 70}%`);
@@ -40,7 +42,7 @@ export default function Dashboard() {
     setActiveTab(val);
   };
 
-  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats") => {
+  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
     setActiveTab(tab);
   };
 
@@ -49,7 +51,8 @@ export default function Dashboard() {
       { id: "pdf", title: "PDF Tools", Icon: FileText, color: "text-blue-600 dark:text-blue-400" },
       { id: "image", title: "Image Tools", Icon: Image, color: "text-green-600 dark:text-green-400" },
       { id: "convert", title: "Convert", Icon: RefreshCcw, color: "text-purple-600 dark:text-purple-400" },
-      { id: "stats", title: "Stats", Icon: BarChart3, color: "text-amber-600 dark:text-amber-400" },
+      { id: "tools", title: "Tools", Icon: Wand2, color: "text-amber-600 dark:text-amber-400" },
+      { id: "stats", title: "Stats", Icon: BarChart3, color: "text-orange-600 dark:text-orange-400" },
     ],
     []
   );
@@ -57,14 +60,16 @@ export default function Dashboard() {
   const onSelectRecentCategory = (cat: ToolCategory) => setActiveTab(cat);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-blue-950/30 dark:to-indigo-950/50">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-blue-950/30 dark:to-indigo-950/50 overflow-hidden">
+      <FloatingParticles count={30} />
+      
       <Header onOpenSidebar={() => setMobileNavOpen(true)} onNavigate={handleNavigate} />
 
-      {/* Background */}
+      {/* Enhanced Background */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
         <div
-          className="absolute w-72 h-72 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse"
+          className="absolute w-96 h-96 bg-gradient-to-r from-blue-400/15 to-cyan-400/15 rounded-full blur-3xl animate-pulse"
           style={{
             left: "var(--blob-x, 20%)",
             top: "var(--blob-y, 20%)",
@@ -72,7 +77,7 @@ export default function Dashboard() {
           }}
         />
         <div
-          className="absolute w-64 h-64 bg-gradient-to-r from-purple-400/15 to-pink-400/15 rounded-full blur-3xl animate-pulse"
+          className="absolute w-80 h-80 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse"
           style={{
             left: "var(--blob2-x, 80%)",
             top: "var(--blob2-y, 80%)",
@@ -81,13 +86,15 @@ export default function Dashboard() {
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
+          className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
           style={{
             backgroundImage: `
-              linear-gradient(to right, rgba(59, 130, 246, 0.3) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(59, 130, 246, 0.3) 1px, transparent 1px)
+              radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 75% 75%, rgba(168, 85, 247, 0.3) 0%, transparent 50%),
+              linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
             `,
-            backgroundSize: "40px 40px"
+            backgroundSize: "400px 400px, 400px 400px, 60px 60px, 60px 60px"
           }}
         />
       </div>
@@ -107,14 +114,14 @@ export default function Dashboard() {
 
           {/* Main Content */}
           <section className="col-span-12 lg:col-span-9">
-            {/* Tip Section (brand heading removed to avoid duplication) */}
+            {/* Tip Section */}
             <div className="text-center mb-6">
               <div className="text-sm text-gray-600 dark:text-gray-300">
-                Tip: <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">⌘K or Ctrl + K</kbd> opens the palette
+                Tip: <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">⌘K or Ctrl + K</kbd> opens the command palette
               </div>
             </div>
 
-            {/* Quick Links: show both PDF and Image actions up front */}
+            {/* Quick Links */}
             <QuickLinks onSelectTab={(id) => setActiveTab(id)} />
 
             <RecentTools onSelectCategory={onSelectRecentCategory} />
@@ -130,6 +137,10 @@ export default function Dashboard() {
 
               <TabsContent value="convert" className="focus-visible:outline-none mt-4">
                 <ConvertTools />
+              </TabsContent>
+
+              <TabsContent value="tools" className="focus-visible:outline-none mt-4">
+                <ToolsView />
               </TabsContent>
 
               <TabsContent value="stats" className="focus-visible:outline-none mt-4">

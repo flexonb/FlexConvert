@@ -9,12 +9,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { FileText, Image, RefreshCcw, BarChart3, Scissors, Merge, RotateCw, Droplets, Search } from "lucide-react";
+import { FileText, Image, RefreshCcw, BarChart3, Scissors, Merge, RotateCw, Droplets, Search, Wand2, Eye, QrCode } from "lucide-react";
 
 interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (value: "pdf" | "image" | "convert" | "stats") => void;
+  onSelect: (value: "pdf" | "image" | "convert" | "stats" | "tools") => void;
 }
 
 export default function CommandPalette({ open, onOpenChange, onSelect }: CommandPaletteProps) {
@@ -32,7 +32,7 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
     return () => window.removeEventListener("keydown", down);
   }, [open, onOpenChange]);
 
-  const select = (val: "pdf" | "image" | "convert" | "stats") => {
+  const select = (val: "pdf" | "image" | "convert" | "stats" | "tools") => {
     onSelect(val);
     onOpenChange(false);
   };
@@ -60,6 +60,10 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 <span>Convert</span>
               </CommandItem>
+              <CommandItem onSelect={() => select("tools")}>
+                <Wand2 className="mr-2 h-4 w-4" />
+                <span>Advanced Tools</span>
+              </CommandItem>
               <CommandItem onSelect={() => select("stats")}>
                 <BarChart3 className="mr-2 h-4 w-4" />
                 <span>Analytics</span>
@@ -82,6 +86,21 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
               <CommandItem onSelect={() => select("pdf")}>
                 <Droplets className="mr-2 h-4 w-4" />
                 <span>Add Watermark</span>
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup heading="Advanced Tools">
+              <CommandItem onSelect={() => select("tools")}>
+                <Eye className="mr-2 h-4 w-4" />
+                <span>OCR Scanner</span>
+              </CommandItem>
+              <CommandItem onSelect={() => select("tools")}>
+                <QrCode className="mr-2 h-4 w-4" />
+                <span>QR Code Generator</span>
+              </CommandItem>
+              <CommandItem onSelect={() => select("tools")}>
+                <Droplets className="mr-2 h-4 w-4" />
+                <span>Watermark Designer</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>

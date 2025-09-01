@@ -1,11 +1,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Merge, Scissors, Image as ImageIcon, Archive } from "lucide-react";
+import { Merge, Scissors, Image as ImageIcon, Archive, Eye, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuickLinksProps {
-  onSelectTab: (id: "pdf" | "image" | "convert" | "stats") => void;
+  onSelectTab: (id: "pdf" | "image" | "convert" | "stats" | "tools") => void;
 }
 
 export default function QuickLinks({ onSelectTab }: QuickLinksProps) {
@@ -14,18 +14,20 @@ export default function QuickLinks({ onSelectTab }: QuickLinksProps) {
     label: string;
     sub?: string;
     icon: React.ComponentType<{ className?: string }>;
-    tab: "pdf" | "image";
-    accent: "blue" | "green";
+    tab: "pdf" | "image" | "tools";
+    accent: "blue" | "green" | "amber";
   }[] = [
     { id: "merge-pdf", label: "Merge PDFs", sub: "Combine files", icon: Merge, tab: "pdf", accent: "blue" },
     { id: "split-pdf", label: "Split PDF", sub: "Per-page export", icon: Scissors, tab: "pdf", accent: "blue" },
     { id: "resize-img", label: "Resize Images", sub: "Set dimensions", icon: ImageIcon, tab: "image", accent: "green" },
     { id: "compress-img", label: "Compress Images", sub: "Smaller files", icon: Archive, tab: "image", accent: "green" },
+    { id: "ocr-scan", label: "OCR Scanner", sub: "Extract text", icon: Eye, tab: "tools", accent: "amber" },
+    { id: "qr-generator", label: "QR Generator", sub: "Create codes", icon: QrCode, tab: "tools", accent: "amber" },
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto mb-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+    <div className="w-full max-w-6xl mx-auto mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         {links.map((l) => (
           <Card
             key={l.id}
@@ -41,9 +43,9 @@ export default function QuickLinks({ onSelectTab }: QuickLinksProps) {
               <div
                 className={cn(
                   "p-2 rounded-lg",
-                  l.accent === "blue"
-                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  l.accent === "blue" && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                  l.accent === "green" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                  l.accent === "amber" && "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                 )}
               >
                 <l.icon className="w-5 h-5" />
