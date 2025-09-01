@@ -341,7 +341,10 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
-      const strings = content.items.map((it: any) => it.str).join(" ");
+      const strings = content.items
+        .filter((item: any): item is { str: string } => 'str' in item && typeof item.str === 'string')
+        .map((item: { str: string }) => item.str)
+        .join(" ");
       paragraphs.push(new Paragraph({ children: [new TextRun(strings)] }));
       onProgress?.(((pageNum - 0.5) / pdf.numPages) * 100);
     }
