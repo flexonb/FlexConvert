@@ -10,7 +10,6 @@ import {
   FileText, 
   Image, 
   RefreshCcw, 
-  BarChart3,
   Merge,
   Scissors,
   Archive,
@@ -30,7 +29,6 @@ import {
   File
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface CategoryDropdownMenuProps {
   onNavigate?: (tab: "pdf" | "image" | "convert" | "stats") => void;
@@ -207,18 +205,6 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
               ))}
             </div>
           </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        {/* Analytics - Simple button that directly navigates */}
-        <NavigationMenuItem>
-          <Button
-            onClick={() => handleNavigate("stats")}
-            variant="ghost"
-            className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 h-10 px-3 py-2"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </Button>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
