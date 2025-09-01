@@ -14,6 +14,13 @@ type ProgressCb = (p: number) => void;
 // A4 page in points (1pt = 1/72 inch)
 const A4 = { width: 595.28, height: 841.89 };
 
+function sanitizeTextForDocx(text: string): string {
+  // Removes characters that are invalid in XML.
+  // See https://www.w3.org/TR/xml/#charsets
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+}
+
 // Helpers for text layout with pdf-lib
 function wrapText(font: any, text: string, fontSize: number, maxWidth: number): string[] {
   const words = text.replace(/\r/g, "").split(/\s+/);
@@ -345,7 +352,10 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
         .filter((item: any): item is { str: string } => 'str' in item && typeof item.str === 'string')
         .map((item: { str: string }) => item.str)
         .join(" ");
-      paragraphs.push(new Paragraph({ children: [new TextRun(strings)] }));
+      
+      const sanitizedStrings = sanitizeTextForDocx(strings);
+      
+      paragraphs.push(new Paragraph({ children: [new TextRun(sanitizedStrings)] }));
       onProgress?.(((pageNum - 0.5) / pdf.numPages) * 100);
     }
 
