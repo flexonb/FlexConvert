@@ -27,9 +27,9 @@ function applyTheme(theme: Theme) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "system";
+    if (typeof window === "undefined") return "light";
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    return saved || "system";
+    return saved || "light";
   });
 
   const isDark = useMemo(() => {
