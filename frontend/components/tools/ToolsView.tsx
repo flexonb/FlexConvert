@@ -1,24 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Eye, 
   QrCode, 
   Droplets, 
   Wand2,
 } from "lucide-react";
-import OCRTool from "./OCRTool";
 import QRCodeTool from "./QRCodeTool";
 import WatermarkDesigner from "./WatermarkDesigner";
 
 export default function ToolsView() {
   const tools = [
-    {
-      id: "ocr",
-      title: "OCR Scanner",
-      icon: Eye,
-      component: <OCRTool />
-    },
     {
       id: "qrcode",
       title: "QR Code Generator",
@@ -46,8 +38,8 @@ export default function ToolsView() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="ocr" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="qrcode" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               {tools.map((tool) => {
                 const Icon = tool.icon;
                 return (

@@ -5,7 +5,6 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 ## ✨ New Features & Enhancements
 
 ### 🔧 New Advanced Tools
-- **OCR Scanner**: Extract text from images and documents with confidence scoring
 - **QR Code Generator**: Create customizable QR codes with various options
 - **Watermark Designer**: Visual watermark creation tool with real-time preview
 - **Enhanced File Processing**: Improved algorithms and error handling
@@ -57,7 +56,6 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **Archive Extraction**: Extract ZIP/RAR files
 
 ### Advanced Tools
-- **OCR Scanner**: Extract text from images with multiple language support
 - **QR Code Generator**: Create customizable QR codes with various styling options
 - **Watermark Designer**: Design and preview custom watermarks with real-time editing
 
@@ -85,7 +83,6 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **BrowserImageCompression**: Image compression
 - **FFmpeg.wasm**: Video/audio processing
 - **FileSaver.js**: File downloads
-- **Tesseract.js**: OCR processing (planned)
 - **QRCode.js**: QR code generation (planned)
 
 ## Performance Features
@@ -187,7 +184,6 @@ The lightweight Encore.ts backend only tracks:
 ## Recent Major Improvements
 
 ### New Tools
-- Added OCR Scanner for text extraction from images
 - Added QR Code Generator with customization options
 - Added Watermark Designer with real-time preview
 - Enhanced PDF tools with page extraction feature
@@ -210,7 +206,7 @@ The lightweight Encore.ts backend only tracks:
 
 ## Future Enhancements
 
-- **Real OCR Integration**: Tesseract.js integration for actual text extraction
+- **OCR Integration**: Text extraction from images/PDFs
 - **QR Code Scanning**: Camera-based QR code scanning
 - **Batch Operations**: Process multiple files with saved templates
 - **Advanced Cropping**: Interactive crop tool with aspect ratio presets

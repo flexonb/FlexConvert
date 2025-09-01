@@ -43,7 +43,7 @@ const items: { id: NavId; label: string; icon: React.ComponentType<{ className?:
     icon: Wand2, 
     color: "text-amber-600 dark:text-amber-400", 
     bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
-    description: "OCR, QR codes, watermarks"
+    description: "QR codes, watermarks & more"
   },
   { 
     id: "stats", 

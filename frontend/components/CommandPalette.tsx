@@ -9,7 +9,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { FileText, Image, RefreshCcw, BarChart3, Scissors, Merge, RotateCw, Droplets, Search, Wand2, Eye, QrCode } from "lucide-react";
+import { FileText, Image, RefreshCcw, BarChart3, Scissors, Merge, RotateCw, Droplets, Search, Wand2, QrCode } from "lucide-react";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -90,10 +90,6 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Advanced Tools">
-              <CommandItem onSelect={() => select("tools")}>
-                <Eye className="mr-2 h-4 w-4" />
-                <span>OCR Scanner</span>
-              </CommandItem>
               <CommandItem onSelect={() => select("tools")}>
                 <QrCode className="mr-2 h-4 w-4" />
                 <span>QR Code Generator</span>

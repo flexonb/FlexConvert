@@ -28,7 +28,6 @@ import {
   Music,
   File,
   Wand2,
-  Eye,
   QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -75,7 +74,6 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
   ];
 
   const advancedTools = [
-    { icon: Eye, label: "OCR Scanner", desc: "Extract text from images" },
     { icon: QrCode, label: "QR Generator", desc: "Create custom QR codes" },
     { icon: Droplets, label: "Watermark Designer", desc: "Design custom watermarks" },
   ];
@@ -234,7 +232,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
                     Advanced Tools
                   </div>
                   <p className="text-sm leading-tight text-amber-700 dark:text-amber-200">
-                    Professional tools for OCR, QR code generation, watermark design and more.
+                    Professional tools for QR code generation, watermark design and more.
                   </p>
                 </div>
               </div>

@@ -1,7 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Merge, Scissors, Image as ImageIcon, Archive, Eye, QrCode } from "lucide-react";
+import { Merge, Scissors, Image as ImageIcon, Archive, QrCode, Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuickLinksProps {
@@ -21,8 +20,8 @@ export default function QuickLinks({ onSelectTab }: QuickLinksProps) {
     { id: "split-pdf", label: "Split PDF", sub: "Per-page export", icon: Scissors, tab: "pdf", accent: "blue" },
     { id: "resize-img", label: "Resize Images", sub: "Set dimensions", icon: ImageIcon, tab: "image", accent: "green" },
     { id: "compress-img", label: "Compress Images", sub: "Smaller files", icon: Archive, tab: "image", accent: "green" },
-    { id: "ocr-scan", label: "OCR Scanner", sub: "Extract text", icon: Eye, tab: "tools", accent: "amber" },
     { id: "qr-generator", label: "QR Generator", sub: "Create codes", icon: QrCode, tab: "tools", accent: "amber" },
+    { id: "watermark-designer", label: "Watermark Designer", sub: "Design watermarks", icon: Droplets, tab: "tools", accent: "amber" },
   ];
 
   return (
