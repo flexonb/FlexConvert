@@ -1,11 +1,8 @@
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure PDF.js worker to match the version of the library.
-const pdfjsVersion = (pdfjsLib as any).version;
-if (pdfjsVersion) {
-  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.js`;
-}
+// Configure PDF.js worker to a known stable version to avoid mismatches.
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.170/pdf.worker.min.js`;
 
 export interface PDFProcessingOptions {
   quality?: number;
