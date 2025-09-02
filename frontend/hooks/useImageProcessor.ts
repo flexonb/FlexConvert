@@ -12,6 +12,7 @@ import {
   resizeImage,
   rotateImage,
   textOverlay,
+  enhanceImage,
   type ImageOperation,
 } from "../utils/imageProcessor";
 
@@ -23,7 +24,7 @@ export function useImageProcessor() {
 
   const updateProgress = (val: number) => setProgress(Math.max(0, Math.min(100, Math.round(val))));
 
-  const processFiles = async (files: File[], operation: ImageOperation) => {
+  const processFiles = async (files: File[], operation: ImageOperation, options?: any) => {
     if (files.length === 0) {
       toast({
         title: "No files selected",
@@ -55,6 +56,9 @@ export function useImageProcessor() {
 
         let blob: Blob;
         switch (operation) {
+          case "enhance":
+            blob = await enhanceImage(file, options);
+            break;
           case "resize":
             blob = await resizeImage(file, { maxWidth: 1920, maxHeight: 1920 });
             break;

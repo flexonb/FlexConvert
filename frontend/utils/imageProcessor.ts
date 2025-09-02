@@ -1,4 +1,5 @@
 export type ImageOperation =
+  | "enhance"
   | "resize"
   | "crop"
   | "compress"
@@ -8,6 +9,17 @@ export type ImageOperation =
   | "grayscale"
   | "adjust"
   | "text-overlay";
+
+export interface ImageEnhanceOptions {
+  sharpen?: number; // 0-1
+  denoise?: number; // 0-1
+  autoLevels?: boolean;
+  saturation?: number; // ~1.0
+  contrast?: number; // ~1.0
+  brightness?: number; // ~1.0
+  targetWidth?: number;
+  targetHeight?: number;
+}
 
 interface ResizeOptions {
   maxWidth?: number;
@@ -68,7 +80,7 @@ function loadImageFromFile(file: File): Promise<HTMLImageElement> {
       URL.revokeObjectURL(url);
       resolve(img);
     };
-    img.onerror = (e) => {
+    img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error(`Failed to load image: ${file.name}`));
     };
@@ -98,6 +110,146 @@ async function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: n
       quality
     );
   });
+}
+
+// Convolution helper
+function applyConvolution(
+  src: ImageData,
+  kernel: number[],
+  divisor?: number,
+  bias = 0
+): ImageData {
+  const w = src.width;
+  const h = src.height;
+  const output = new ImageData(w, h);
+  const srcData = src.data;
+  const dstData = output.data;
+  const side = Math.sqrt(kernel.length);
+  const half = Math.floor(side / 2);
+  const div = divisor ?? (kernel.reduce((a, b) => a + b, 0) || 1);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let ky = 0; ky < side; ky++) {
+        for (let kx = 0; kx < side; kx++) {
+          const scy = Math.min(h - 1, Math.max(0, y + ky - half));
+          const scx = Math.min(w - 1, Math.max(0, x + kx - half));
+          const srcOff = (scy * w + scx) * 4;
+          const wt = kernel[ky * side + kx];
+
+          r += srcData[srcOff] * wt;
+          g += srcData[srcOff + 1] * wt;
+          b += srcData[srcOff + 2] * wt;
+          a += srcData[srcOff + 3] * wt;
+        }
+      }
+      const dstOff = (y * w + x) * 4;
+      dstData[dstOff] = Math.min(255, Math.max(0, r / div + bias));
+      dstData[dstOff + 1] = Math.min(255, Math.max(0, g / div + bias));
+      dstData[dstOff + 2] = Math.min(255, Math.max(0, b / div + bias));
+      dstData[dstOff + 3] = Math.min(255, Math.max(0, a / div));
+    }
+  }
+  return output;
+}
+
+function autoLevels(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  let min = 255, max = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  const range = Math.max(1, max - min);
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = ((data[i] - min) / range) * 255;
+    data[i + 1] = ((data[i + 1] - min) / range) * 255;
+    data[i + 2] = ((data[i + 2] - min) / range) * 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+export async function enhanceImage(file: File, opts: ImageEnhanceOptions = {}): Promise<Blob> {
+  const img = await loadImageFromFile(file);
+
+  // Optionally resize to target size while keeping aspect ratio
+  let targetW = img.width;
+  let targetH = img.height;
+  if (opts.targetWidth || opts.targetHeight) {
+    const ar = img.width / img.height;
+    if (opts.targetWidth && !opts.targetHeight) {
+      targetW = opts.targetWidth;
+      targetH = Math.round(targetW / ar);
+    } else if (!opts.targetWidth && opts.targetHeight) {
+      targetH = opts.targetHeight;
+      targetW = Math.round(targetH * ar);
+    } else if (opts.targetWidth && opts.targetHeight) {
+      targetW = opts.targetWidth;
+      targetH = opts.targetHeight;
+    }
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, targetW, targetH);
+
+  // Denoise via simple box blur, controlled by denoise intensity
+  const denoise = Math.max(0, Math.min(1, opts.denoise ?? 0.2));
+  if (denoise > 0) {
+    const passes = Math.round(denoise * 2); // 0-2 passes
+    for (let p = 0; p < passes; p++) {
+      const src = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const kernel = [
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1
+      ];
+      const blurred = applyConvolution(src, kernel, 9, 0);
+      ctx.putImageData(blurred, 0, 0);
+    }
+  }
+
+  // Auto-levels
+  if (opts.autoLevels ?? true) {
+    autoLevels(ctx, canvas.width, canvas.height);
+  }
+
+  // Adjustments (CSS-like filter)
+  const brightness = opts.brightness ?? 1.0;
+  const contrast = opts.contrast ?? 1.05;
+  const saturation = opts.saturation ?? 1.05;
+  (ctx as any).filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+  ctx.drawImage(canvas, 0, 0);
+
+  // Sharpen (unsharp mask style: original + sharpened detail)
+  const sharpen = Math.max(0, Math.min(1, opts.sharpen ?? 0.5));
+  if (sharpen > 0) {
+    const src = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // High-pass filter: sharpen kernel
+    const sharpenKernel = [
+      0, -1, 0,
+      -1, 5, -1,
+      0, -1, 0
+    ];
+    const sharpened = applyConvolution(src, sharpenKernel, 1, 0);
+    // Blend based on sharpen amount
+    const base = src.data;
+    const sh = sharpened.data;
+    for (let i = 0; i < base.length; i += 4) {
+      base[i] = base[i] + (sh[i] - base[i]) * sharpen;
+      base[i + 1] = base[i + 1] + (sh[i + 1] - base[i + 1]) * sharpen;
+      base[i + 2] = base[i + 2] + (sh[i + 2] - base[i + 2]) * sharpen;
+    }
+    ctx.putImageData(src, 0, 0);
+  }
+
+  // Output to JPEG (balanced size/quality)
+  return canvasToBlob(canvas, "image/jpeg", 0.92);
 }
 
 export async function resizeImage(file: File, opts: ResizeOptions = {}): Promise<Blob> {
@@ -222,7 +374,6 @@ export async function adjustImage(file: File, opts: AdjustOptions): Promise<Blob
   const contrast = opts.contrast ?? 1;
   const saturate = opts.saturation ?? 1;
 
-  // Use CSS-like filter on canvas
   (ctx as any).filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
   ctx.drawImage(img, 0, 0);
 
@@ -248,7 +399,6 @@ export async function textOverlay(file: File, opts: TextOverlayOptions): Promise
   ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell`;
   ctx.textBaseline = "bottom";
   ctx.fillStyle = "rgba(0,0,0,0.4)";
-  // shadow-like backdrop
   const metrics = ctx.measureText(text);
   const tx = canvas.width - metrics.width - pad;
   const ty = canvas.height - pad;
