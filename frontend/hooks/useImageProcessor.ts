@@ -12,6 +12,7 @@ import {
   resizeImage,
   rotateImage,
   textOverlay,
+  enhanceImage,
   type ImageOperation,
 } from "../utils/imageProcessor";
 
@@ -56,12 +57,8 @@ export function useImageProcessor() {
         let blob: Blob;
         switch (operation) {
           case "enhance":
-            // options forwarded from dialog
-            // enhance handled in ImageEnhanceDialog via utils/enhanceImage
-            // to keep a single flow, use dynamic import to avoid cycle (optional)
-            // but our enhance is already used in ImageTools directly
-            // Leave enhance to the dedicated dialog handler.
-            throw new Error("Enhance operation must be triggered via its dialog.");
+            blob = await enhanceImage(file, options);
+            break;
           case "resize":
             blob = await resizeImage(file, options);
             break;

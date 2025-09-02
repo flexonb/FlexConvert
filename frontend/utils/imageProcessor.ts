@@ -29,7 +29,7 @@ export interface ResizeOptions {
 }
 
 export interface CropOptions {
-  mode: "center-square";
+  area: { x: number; y: number; width: number; height: number; };
   format?: "jpeg" | "png" | "webp";
   quality?: number;
 }
@@ -254,8 +254,8 @@ export async function enhanceImage(file: File, opts: ImageEnhanceOptions = {}): 
 
 export async function resizeImage(file: File, opts: ResizeOptions = {}): Promise<Blob> {
   const img = await loadImageFromFile(file);
-  const maxW = opts.maxWidth ?? 1920;
-  const maxH = opts.maxHeight ?? 1920;
+  const maxW = opts.maxWidth ?? img.width;
+  const maxH = opts.maxHeight ?? img.height;
 
   let { width, height } = img;
   const ratio = Math.min(maxW / width, maxH / height, 1);
@@ -273,17 +273,30 @@ export async function resizeImage(file: File, opts: ResizeOptions = {}): Promise
 
 export async function cropImage(file: File, opts: CropOptions): Promise<Blob> {
   const img = await loadImageFromFile(file);
-  const size = Math.min(img.width, img.height);
-  const sx = Math.floor((img.width - size) / 2);
-  const sy = Math.floor((img.height - size) / 2);
+  const { area } = opts;
+
+  if (!area || !area.width || !area.height) {
+    throw new Error("Crop area must be defined with width and height.");
+  }
 
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = area.width;
+  canvas.height = area.height;
   const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+  
+  ctx.drawImage(
+    img,
+    area.x,
+    area.y,
+    area.width,
+    area.height,
+    0,
+    0,
+    area.width,
+    area.height
+  );
 
-  return canvasToBlob(canvas, mimeFor(opts.format), opts.quality ?? 0.9);
+  return canvasToBlob(canvas, mimeFor(opts.format), opts.quality ?? 0.92);
 }
 
 export async function compressImage(file: File, opts: CompressOptions = {}): Promise<Blob> {
