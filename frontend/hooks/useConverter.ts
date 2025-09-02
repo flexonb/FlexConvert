@@ -3,8 +3,6 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
 import {
-  convertAudio,
-  convertVideo,
   docxToPdf,
   imagesToPdf,
   pdfToDocx,
@@ -21,8 +19,6 @@ type ConversionType =
   | "txt-to-pdf"
   | "images-to-pdf"
   | "pdf-to-docx"
-  | "video-convert"
-  | "audio-convert"
   | "extract-zip";
 
 export function useConverter() {
@@ -84,35 +80,6 @@ export function useConverter() {
         case "pdf-to-docx": {
           const out = await pdfToDocx(files, update);
           results.push(...out);
-          break;
-        }
-        case "video-convert": {
-          let i = 0;
-          for (const f of files) {
-            const { blob, ext } = await convertVideo(f, (p) => {
-              // distribute progress across files
-              const base = (i / files.length) * 100;
-              update(base + (p / files.length));
-            });
-            i++;
-            const baseName = f.name.replace(/\.[^/.]+$/, "");
-            results.push({ blob, suggestedName: `${baseName}.webm` });
-            update((i / files.length) * 100);
-          }
-          break;
-        }
-        case "audio-convert": {
-          let i = 0;
-          for (const f of files) {
-            const { blob, ext } = await convertAudio(f, (p) => {
-              const base = (i / files.length) * 100;
-              update(base + (p / files.length));
-            });
-            i++;
-            const baseName = f.name.replace(/\.[^/.]+$/, "");
-            results.push({ blob, suggestedName: `${baseName}.${ext}` });
-            update((i / files.length) * 100);
-          }
           break;
         }
         case "extract-zip": {

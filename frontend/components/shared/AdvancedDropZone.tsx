@@ -17,6 +17,21 @@ interface AdvancedDropZoneProps {
   showPreviews?: boolean;
 }
 
+const extToMime: Record<string, string> = {
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.txt': 'text/plain',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.bmp': 'image/bmp',
+  '.pdf': 'application/pdf',
+  '.zip': 'application/zip',
+};
+
 export default function AdvancedDropZone({
   onFilesSelected,
   acceptedTypes,
@@ -77,10 +92,18 @@ export default function AdvancedDropZone({
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
-    accept: acceptedTypes?.reduce((acc, type) => {
-      acc[type] = [];
-      return acc;
-    }, {} as Record<string, string[]>),
+    accept: acceptedTypes
+      ? acceptedTypes.reduce((acc, ext) => {
+          const mime = extToMime[ext.toLowerCase()];
+          if (mime) {
+            if (!acc[mime]) {
+              acc[mime] = [];
+            }
+            acc[mime].push(ext);
+          }
+          return acc;
+        }, {} as Record<string, string[]>)
+      : undefined,
     maxFiles,
     maxSize,
     noClick: true,

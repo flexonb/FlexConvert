@@ -129,7 +129,7 @@ export default function ConvertTools() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
             {converters.map((converter) => {
               const supported = supportedCountFor(converter);
-              const disabled = status === "processing" || supported === 0;
+              const disabled = status === "processing" || (files.length > 0 && supported === 0);
               return (
                 <ToolCard
                   key={converter.id}
@@ -141,7 +141,7 @@ export default function ConvertTools() {
                   onClick={() => runConverter(converter)}
                   disabled={disabled}
                   buttonText={buttonTextFor(converter)}
-                  buttonVariant={disabled ? "outline" : "default"}
+                  buttonVariant={disabled && files.length > 0 ? "outline" : "default"}
                 />
               );
             })}

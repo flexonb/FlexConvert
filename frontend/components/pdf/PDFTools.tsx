@@ -189,7 +189,7 @@ export default function PDFTools() {
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
 
-          <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={["application/pdf"]} maxFiles={10} className="mb-4" />
+          <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={[".pdf"]} maxFiles={10} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />
 

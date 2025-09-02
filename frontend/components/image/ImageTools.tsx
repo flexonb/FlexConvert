@@ -39,7 +39,7 @@ export default function ImageTools() {
     { id: "text-overlay", title: "Add Text", description: "Add text overlay to images", icon: Type, action: () => processFiles(files, "text-overlay") },
   ] as const;
 
-  const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp"];
+  const acceptedImageTypes = [".jpeg", ".jpg", ".png", ".webp", ".gif", ".bmp"];
 
   const stage: "select" | "process" | "download" = useMemo(() => {
     if (files.length === 0) return "select";
