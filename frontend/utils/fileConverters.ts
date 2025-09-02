@@ -342,21 +342,46 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
     try {
       const arrayBuffer = await f.arrayBuffer();
       const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
-      const paragraphs: Paragraph[] = [];
+      const docxParagraphs: Paragraph[] = [];
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const content = await page.getTextContent();
         
-        const strings = content.items
-          .filter((item: any): item is { str: string } => 'str' in item && typeof item.str === 'string')
-          .map((item: { str: string }) => item.str)
-          .join(" ");
-        
-        const sanitizedStrings = sanitizeTextForDocx(strings);
-        
-        if (sanitizedStrings.trim().length > 0) {
-          paragraphs.push(new Paragraph({ children: [new TextRun(sanitizedStrings)] }));
+        if (content.items.length === 0) {
+            continue;
+        }
+
+        // Sort items by their vertical, then horizontal position.
+        const sortedItems = content.items.sort((a: any, b: any) => {
+            if (Math.abs(a.transform[5] - b.transform[5]) > 5) { // Different lines
+                return b.transform[5] - a.transform[5]; // Higher y first
+            }
+            return a.transform[4] - b.transform[4]; // Same line, sort by x
+        });
+
+        let lineBuffer: string[] = [];
+        let lastY = sortedItems[0].transform[5];
+
+        for (const item of sortedItems) {
+            if ('str' in item && typeof item.str === 'string' && item.str.trim()) {
+                const currentY = item.transform[5];
+                if (Math.abs(currentY - lastY) > 5) { // New line
+                    if (lineBuffer.length > 0) {
+                        const sanitizedText = sanitizeTextForDocx(lineBuffer.join(' '));
+                        docxParagraphs.push(new Paragraph({ children: [new TextRun(sanitizedText)] }));
+                    }
+                    lineBuffer = [item.str];
+                } else {
+                    lineBuffer.push(item.str);
+                }
+                lastY = currentY;
+            }
+        }
+        // Add the last line
+        if (lineBuffer.length > 0) {
+            const sanitizedText = sanitizeTextForDocx(lineBuffer.join(' '));
+            docxParagraphs.push(new Paragraph({ children: [new TextRun(sanitizedText)] }));
         }
         
         const fileProgress = pageNum / pdf.numPages;
@@ -364,14 +389,14 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
         onProgress?.(totalProgress);
       }
 
-      if (paragraphs.length === 0) {
-        paragraphs.push(new Paragraph({ children: [new TextRun("(no text extracted)")] }));
+      if (docxParagraphs.length === 0) {
+        docxParagraphs.push(new Paragraph({ children: [new TextRun("(no text extracted)")] }));
       }
 
       const doc = new Document({
         sections: [{
           properties: {},
-          children: paragraphs,
+          children: docxParagraphs,
         }],
       });
 
