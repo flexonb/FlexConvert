@@ -12,7 +12,6 @@ import {
   resizeImage,
   rotateImage,
   textOverlay,
-  enhanceImage,
   type ImageOperation,
 } from "../utils/imageProcessor";
 
@@ -57,34 +56,38 @@ export function useImageProcessor() {
         let blob: Blob;
         switch (operation) {
           case "enhance":
-            blob = await enhanceImage(file, options);
-            break;
+            // options forwarded from dialog
+            // enhance handled in ImageEnhanceDialog via utils/enhanceImage
+            // to keep a single flow, use dynamic import to avoid cycle (optional)
+            // but our enhance is already used in ImageTools directly
+            // Leave enhance to the dedicated dialog handler.
+            throw new Error("Enhance operation must be triggered via its dialog.");
           case "resize":
-            blob = await resizeImage(file, { maxWidth: 1920, maxHeight: 1920 });
+            blob = await resizeImage(file, options);
             break;
           case "crop":
-            blob = await cropImage(file, { mode: "center-square" });
+            blob = await cropImage(file, options);
             break;
           case "compress":
-            blob = await compressImage(file, { quality: 0.7 });
+            blob = await compressImage(file, options);
             break;
           case "rotate":
-            blob = await rotateImage(file, { degrees: 90 });
+            blob = await rotateImage(file, options);
             break;
           case "flip":
-            blob = await flipImage(file, { horizontal: true, vertical: false });
+            blob = await flipImage(file, options);
             break;
           case "convert":
-            blob = await convertFormat(file, { format: "webp", quality: 0.9 });
+            blob = await convertFormat(file, options);
             break;
           case "grayscale":
             blob = await grayscaleImage(file);
             break;
           case "adjust":
-            blob = await adjustImage(file, { brightness: 1.1, contrast: 1.05, saturation: 1.05 });
+            blob = await adjustImage(file, options);
             break;
           case "text-overlay":
-            blob = await textOverlay(file, { text: "FlexConvert", opacity: 0.75 });
+            blob = await textOverlay(file, options);
             break;
           default:
             throw new Error(`Unsupported operation: ${operation as string}`);

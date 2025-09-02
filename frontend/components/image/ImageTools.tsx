@@ -19,24 +19,40 @@ import ToolCard from "../shared/ToolCard";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { type Step } from "../shared/StepIndicator";
 import ImageEnhanceDialog from "./ImageEnhanceDialog";
-import type { ImageEnhanceOptions } from "@/utils/imageProcessor";
+import ImageOperationDialog from "./ImageOperationDialog";
+import type { ImageEnhanceOptions, ImageOperation } from "@/utils/imageProcessor";
+
+type ConfigurableOperation =
+  | "resize"
+  | "crop"
+  | "compress"
+  | "rotate"
+  | "flip"
+  | "convert"
+  | "grayscale"
+  | "adjust"
+  | "text-overlay";
 
 export default function ImageTools() {
   const [files, setFiles] = useState<File[]>([]);
   const [enhanceOpen, setEnhanceOpen] = useState(false);
+
+  const [opDialogOpen, setOpDialogOpen] = useState(false);
+  const [currentOperation, setCurrentOperation] = useState<ConfigurableOperation | null>(null);
+
   const { status, progress, processFiles } = useImageProcessor();
 
   const imageTools = [
     { id: "enhance", title: "Enhance", description: "Auto-enhance (sharpen, denoise, levels)", icon: Wand2, action: () => setEnhanceOpen(true) },
-    { id: "resize", title: "Resize Images", description: "Change image dimensions", icon: ImageIcon, action: () => processFiles(files, "resize") },
-    { id: "crop", title: "Crop Images", description: "Crop images to specific area", icon: Crop, action: () => processFiles(files, "crop") },
-    { id: "compress", title: "Compress Images", description: "Reduce image file size", icon: Archive, action: () => processFiles(files, "compress") },
-    { id: "rotate", title: "Rotate Images", description: "Rotate images clockwise", icon: RotateCw, action: () => processFiles(files, "rotate") },
-    { id: "flip", title: "Flip Images", description: "Flip images horizontally/vertically", icon: FlipHorizontal, action: () => processFiles(files, "flip") },
-    { id: "convert", title: "Convert Format", description: "PNG ↔ JPG ↔ WebP conversion", icon: RefreshCw, action: () => processFiles(files, "convert") },
-    { id: "grayscale", title: "Grayscale", description: "Convert images to grayscale", icon: Palette, action: () => processFiles(files, "grayscale") },
-    { id: "adjust", title: "Adjust Colors", description: "Brightness, contrast, saturation", icon: Sun, action: () => processFiles(files, "adjust") },
-    { id: "text-overlay", title: "Add Text", description: "Add text overlay to images", icon: Type, action: () => processFiles(files, "text-overlay") },
+    { id: "resize", title: "Resize Images", description: "Change image dimensions", icon: ImageIcon, action: () => openOperation("resize") },
+    { id: "crop", title: "Crop Images", description: "Crop images to specific area", icon: Crop, action: () => openOperation("crop") },
+    { id: "compress", title: "Compress Images", description: "Reduce image file size", icon: Archive, action: () => openOperation("compress") },
+    { id: "rotate", title: "Rotate Images", description: "Rotate images by any angle", icon: RotateCw, action: () => openOperation("rotate") },
+    { id: "flip", title: "Flip Images", description: "Flip horizontally and/or vertically", icon: FlipHorizontal, action: () => openOperation("flip") },
+    { id: "convert", title: "Convert Format", description: "PNG ↔ JPG ↔ WebP conversion", icon: RefreshCw, action: () => openOperation("convert") },
+    { id: "grayscale", title: "Grayscale", description: "Convert images to grayscale", icon: Palette, action: () => openOperation("grayscale") },
+    { id: "adjust", title: "Adjust Colors", description: "Brightness, contrast, saturation", icon: Sun, action: () => openOperation("adjust") },
+    { id: "text-overlay", title: "Add Text", description: "Add text overlay to images", icon: Type, action: () => openOperation("text-overlay") },
   ] as const;
 
   const acceptedImageTypes = [".jpeg", ".jpg", ".png", ".webp", ".gif", ".bmp"];
@@ -60,6 +76,17 @@ export default function ImageTools() {
     processFiles(files, "enhance", opts);
   };
 
+  function openOperation(op: ConfigurableOperation) {
+    setCurrentOperation(op);
+    setOpDialogOpen(true);
+  }
+
+  function onConfirmOperation(options: any) {
+    if (!currentOperation) return;
+    processFiles(files, currentOperation as ImageOperation, options);
+    setOpDialogOpen(false);
+  }
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -68,7 +95,7 @@ export default function ImageTools() {
             <ImageIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
             Image Processing Tools
           </CardTitle>
-          <CardDescription>Select images and choose a tool. All processing happens locally in your browser.</CardDescription>
+          <CardDescription>Select images and choose a tool. Configure options in a guided, multi-step flow. All processing happens locally in your browser.</CardDescription>
         </CardHeader>
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
@@ -87,7 +114,7 @@ export default function ImageTools() {
                 accent={tool.id === "enhance" ? "amber" : "green"}
                 onClick={tool.action}
                 disabled={files.length === 0 || status === "processing"}
-                buttonText={files.length === 0 ? "Select files" : "Process"}
+                buttonText={files.length === 0 ? "Select files" : tool.id === "enhance" ? "Configure" : "Configure"}
                 buttonVariant={files.length === 0 ? "outline" : "default"}
               />
             ))}
@@ -107,6 +134,17 @@ export default function ImageTools() {
         onOpenChange={setEnhanceOpen}
         onConfirm={onConfirmEnhance}
       />
+
+      {/* Generic operation dialog (multistep) */}
+      {currentOperation && (
+        <ImageOperationDialog
+          open={opDialogOpen}
+          onOpenChange={setOpDialogOpen}
+          operation={currentOperation}
+          files={files}
+          onConfirm={onConfirmOperation}
+        />
+      )}
     </div>
   );
 }

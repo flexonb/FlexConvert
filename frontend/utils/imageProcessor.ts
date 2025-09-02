@@ -21,43 +21,43 @@ export interface ImageEnhanceOptions {
   targetHeight?: number;
 }
 
-interface ResizeOptions {
+export interface ResizeOptions {
   maxWidth?: number;
   maxHeight?: number;
   format?: "jpeg" | "png" | "webp";
   quality?: number; // 0-1
 }
 
-interface CropOptions {
+export interface CropOptions {
   mode: "center-square";
   format?: "jpeg" | "png" | "webp";
   quality?: number;
 }
 
-interface CompressOptions {
+export interface CompressOptions {
   quality?: number; // 0-1
   format?: "jpeg" | "png" | "webp";
 }
 
-interface RotateOptions {
+export interface RotateOptions {
   degrees: number; // positive clockwise
   format?: "jpeg" | "png" | "webp";
   quality?: number;
 }
 
-interface FlipOptions {
+export interface FlipOptions {
   horizontal?: boolean;
   vertical?: boolean;
   format?: "jpeg" | "png" | "webp";
   quality?: number;
 }
 
-interface ConvertOptions {
+export interface ConvertOptions {
   format: "jpeg" | "png" | "webp";
   quality?: number;
 }
 
-interface AdjustOptions {
+export interface AdjustOptions {
   brightness?: number; // 1 = no change
   contrast?: number; // 1 = no change
   saturation?: number; // 1 = no change
@@ -65,7 +65,7 @@ interface AdjustOptions {
   quality?: number;
 }
 
-interface TextOverlayOptions {
+export interface TextOverlayOptions {
   text: string;
   opacity?: number; // 0-1
   format?: "jpeg" | "png" | "webp";
