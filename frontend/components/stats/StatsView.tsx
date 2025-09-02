@@ -1,13 +1,15 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, TrendingUp, Activity, BarChart2, RefreshCcw, AlertTriangle } from "lucide-react";
+import { BarChart3, TrendingUp, Activity, RefreshCcw, AlertTriangle, Gauge, FolderOpen } from "lucide-react";
 import backend from "~backend/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import AnimatedCounter from "../shared/AnimatedCounter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AnimatedCounter from "../shared/AnimatedCounter";
+import Sparkline from "./Sparkline";
+import DonutChart from "./DonutChart";
+import { cn } from "@/lib/utils";
 
 type CategoryFilter = "all" | "pdf" | "image" | "convert";
 type RangeFilter = "7" | "30" | "90" | "365" | "all";
@@ -34,36 +36,67 @@ export default function StatsView() {
     refetchOnWindowFocus: true,
   });
 
-  const topTools = useMemo(() => (stats ? stats.stats.slice(0, 10) : []), [stats]);
+  const topTools = useMemo(() => (stats ? stats.stats.slice(0, 5) : []), [stats]);
 
-  const categoryStats = useMemo(() => {
-    if (!stats) return {};
-    return stats.stats.reduce((acc, stat) => {
-      if (!acc[stat.toolCategory]) {
-        acc[stat.toolCategory] = { total: 0, tools: 0 };
-      }
-      acc[stat.toolCategory].total += stat.totalUsage;
-      acc[stat.toolCategory].tools += 1;
-      return acc;
-    }, {} as Record<string, { total: number; tools: number }>);
+  const categoryAgg = useMemo(() => {
+    const agg: Record<string, number> = {};
+    if (!stats) return agg;
+    for (const s of stats.stats) {
+      agg[s.toolCategory] = (agg[s.toolCategory] || 0) + s.totalUsage;
+    }
+    return agg;
   }, [stats]);
+
+  const donutData = useMemo(
+    () =>
+      Object.entries(categoryAgg).map(([label, value]) => ({
+        label,
+        value,
+        color:
+          label === "pdf"
+            ? "#3b82f6"
+            : label === "image"
+            ? "#10b981"
+            : label === "convert"
+            ? "#8b5cf6"
+            : undefined,
+      })),
+    [categoryAgg]
+  );
 
   const maxSeries = useMemo(() => {
     if (!stats?.timeSeries?.length) return 0;
     return Math.max(...stats.timeSeries.map((p) => p.count));
   }, [stats]);
 
+  const seriesPoints = useMemo(
+    () => stats?.timeSeries?.map((p) => p.count) ?? [],
+    [stats]
+  );
+
+  // Approximate overall success rate weighted by usage counts
+  const overallSuccess = useMemo(() => {
+    if (!stats?.stats?.length) return 0;
+    let sum = 0;
+    let denom = 0;
+    for (const s of stats.stats) {
+      sum += s.successRate * s.totalUsage;
+      denom += s.totalUsage;
+    }
+    return denom ? sum / denom : 0;
+  }, [stats]);
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
             <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-40 mt-2" />
+              <div className="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+              <div className="h-3 w-24 mt-2 animate-pulse rounded bg-gray-100 dark:bg-gray-700" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-10 w-24" />
+              <div className="h-10 w-28 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
             </CardContent>
           </Card>
         ))}
@@ -102,6 +135,7 @@ export default function StatsView() {
 
   return (
     <div className="space-y-4">
+      {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-gray-600 dark:text-gray-400">Filter analytics</div>
         <div className="flex items-center gap-2.5">
@@ -137,10 +171,14 @@ export default function StatsView() {
         </div>
       </div>
 
+      {/* Metric tiles */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Total Operations</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-blue-500" />
+              Total Operations
+            </CardTitle>
             <CardDescription>Processing count (filtered)</CardDescription>
           </CardHeader>
           <CardContent>
@@ -152,20 +190,26 @@ export default function StatsView() {
 
         <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Tool Categories</CardTitle>
-            <CardDescription>Active tool types</CardDescription>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Gauge className="w-4 h-4 text-emerald-500" />
+              Success Rate
+            </CardTitle>
+            <CardDescription>Weighted across tools</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-              <AnimatedCounter to={Object.keys(categoryStats).length} />
+            <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+              {((overallSuccess || 0) * 100).toFixed(1)}%
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Unique Tools</CardTitle>
-            <CardDescription>Available tool variants</CardDescription>
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-purple-500" />
+              Unique Tools
+            </CardTitle>
+            <CardDescription>Variants in use</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
@@ -175,11 +219,13 @@ export default function StatsView() {
         </Card>
       </div>
 
-      {stats.timeSeries.length > 0 ? (
-        <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" /> Activity Over Time
+      {/* Visual charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0 lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-blue-500" />
+              Activity Over Time
             </CardTitle>
             <CardDescription>
               Daily operations{category !== "all" ? ` • ${category}` : ""}
@@ -187,105 +233,118 @@ export default function StatsView() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-20 flex items-end gap-[3px]">
-              {stats.timeSeries.map((p, i) => {
-                const h = maxSeries ? Math.max(2, Math.round((p.count / maxSeries) * 100)) : 2;
-                return (
-                  <div
-                    key={`${p.date}-${i}`}
-                    title={`${p.date}: ${p.count}`}
-                    aria-label={`${p.date}: ${p.count} operations`}
-                    className="flex-1 bg-gradient-to-t from-blue-500 via-purple-500 to-pink-500 rounded-t transition-all duration-500"
-                    style={{ height: `${h}%` }}
-                  />
-                );
-              })}
-            </div>
-            <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-              <span>{stats.timeSeries[0]?.date || ""}</span>
-              <span>{stats.timeSeries[stats.timeSeries.length - 1]?.date || ""}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart2 className="w-5 h-5 text-gray-400" /> No Activity in Range
-            </CardTitle>
-            <CardDescription>Try expanding the date range or removing filters.</CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" /> Most Used Tools
-            </CardTitle>
-            <CardDescription>Top 10 tools by usage count</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2.5">
-              {topTools.map((tool, index) => (
-                <div key={`${tool.toolCategory}-${tool.toolName}`} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <div className="text-sm font-medium text-gray-500 dark:text-gray-400 w-6">#{index + 1}</div>
-                    <div className="min-w-0">
-                      <div className="font-medium text-gray-900 dark:text-white truncate">{tool.toolName}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">{tool.toolCategory}</div>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-semibold text-gray-900 dark:text-white">{tool.totalUsage.toLocaleString()}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{(tool.successRate * 100).toFixed(1)}% success</div>
-                  </div>
+            {seriesPoints.length > 0 ? (
+              <>
+                <Sparkline points={seriesPoints} height={80} className="mt-2" />
+                <div className="mt-2 text-xs text-muted-foreground flex justify-between">
+                  <span>{stats.timeSeries[0]?.date || ""}</span>
+                  <span>{stats.timeSeries[stats.timeSeries.length - 1]?.date || ""}</span>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="h-24 grid place-items-center text-sm text-muted-foreground">
+                No activity in selected range
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-amber-500" /> Category Usage
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Activity className="w-4 h-4 text-amber-500" />
+              Category Breakdown
             </CardTitle>
-            <CardDescription>Usage breakdown by tool category</CardDescription>
+            <CardDescription>Share of operations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {Object.entries(categoryStats).map(([cat, data]) => {
-                const pct = totalOps ? (data.total / totalOps) * 100 : 0;
-                return (
-                  <div key={cat}>
-                    <div className="flex justify-between items-center mb-0.5">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{cat}</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{data.total.toLocaleString()} uses</span>
+            {donutData.length > 0 ? (
+              <DonutChart
+                data={donutData}
+                size={180}
+                thickness={16}
+                centerLabel="Total"
+                legend
+                legendClassName="mt-4"
+              />
+            ) : (
+              <div className="h-24 grid place-items-center text-sm text-muted-foreground">
+                No category data
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Most used tools compact list */}
+      <Card className="bg-white/70 dark:bg-gray-900/60 backdrop-blur border-0">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-500" />
+            Most Used Tools
+          </CardTitle>
+          <CardDescription>Top 5 by usage count</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {topTools.length === 0 && (
+              <div className="text-sm text-muted-foreground">No tools in the selected range.</div>
+            )}
+            {topTools.map((tool, index) => {
+              const pctOfTop = topTools[0]?.totalUsage
+                ? (tool.totalUsage / topTools[0].totalUsage) * 100
+                : 0;
+              const color =
+                tool.toolCategory === "pdf"
+                  ? "from-blue-500 via-indigo-500 to-blue-500"
+                  : tool.toolCategory === "image"
+                  ? "from-emerald-500 via-green-500 to-emerald-500"
+                  : "from-violet-500 via-purple-500 to-violet-500";
+
+              return (
+                <div
+                  key={`${tool.toolCategory}-${tool.toolName}`}
+                  className="flex items-center gap-3"
+                >
+                  <div className="w-6 text-sm font-medium text-muted-foreground shrink-0">
+                    #{index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="truncate font-medium">
+                        <span className="capitalize text-muted-foreground/80 mr-1.5">
+                          {tool.toolCategory}:
+                        </span>
+                        <span className="text-foreground">{tool.toolName}</span>
+                      </div>
+                      <div className="text-xs tabular-nums text-muted-foreground shrink-0">
+                        {tool.totalUsage.toLocaleString()}
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={cn(
+                        "mt-1 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden"
+                      )}
+                    >
                       <div
-                        className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                        aria-label={`${cat} ${pct.toFixed(1)} percent`}
+                        className={cn(
+                          "h-2 rounded-full bg-gradient-to-r transition-all duration-500",
+                          color
+                        )}
+                        style={{ width: `${Math.max(4, pctOfTop)}%` }}
+                        aria-label={`${tool.toolName} ${pctOfTop.toFixed(1)} percent of top`}
                       />
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {data.tools} tools • {pct.toFixed(1)}% of total
+                    <div className="mt-1 text-[11px] text-muted-foreground">
+                      {(tool.successRate * 100).toFixed(1)}% success
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex items-center justify-center py-6 text-sm text-gray-500 dark:text-gray-400">
-        <Activity className="w-4 h-4 mr-2 animate-pulse" />
-        Real-time analytics update automatically.
-      </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
