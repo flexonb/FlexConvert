@@ -130,7 +130,7 @@ export default function ConvertTools() {
             Simple Conversions
           </CardTitle>
           <CardDescription>
-            Only fully supported, in-browser conversions are shown. All processing happens locally.
+            Simple, fully in-browser conversions for reliability. All processing happens locally.
           </CardDescription>
         </CardHeader>
         <CardContent>

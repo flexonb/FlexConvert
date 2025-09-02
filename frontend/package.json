@@ -21,7 +21,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "docx": "^9.4.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.484.0",
     "pdf-lib": "^1.17.1",
@@ -32,8 +31,7 @@
     "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.5.0",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.12",
-    "xlsx": "^0.18.5"
+    "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
     "@tailwindcss/oxide": "^4.1.12",
