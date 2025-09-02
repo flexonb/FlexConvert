@@ -2,10 +2,11 @@ import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.js?url";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
-// Configure PDF.js worker to a known stable version to avoid mismatches.
-GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+// Configure PDF.js worker to be bundled with Vite.
+GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 type ProgressCb = (p: number) => void;
 
