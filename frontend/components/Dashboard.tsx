@@ -10,10 +10,8 @@ import ToolsView from "./tools/ToolsView";
 import Footer from "./Footer";
 import CommandPalette from "./CommandPalette";
 import QuickActionFab from "./QuickActionFab";
-import type { ToolCategory } from "../utils/recentTools";
 import SideNav from "./SideNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import RecentTools from "./RecentTools";
 import FloatingParticles from "./shared/FloatingParticles";
 
 export default function Dashboard() {
@@ -55,8 +53,6 @@ export default function Dashboard() {
     ],
     []
   );
-
-  const onSelectRecentCategory = (cat: ToolCategory) => setActiveTab(cat);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-blue-950/30 dark:to-indigo-950/50 overflow-hidden">
@@ -121,9 +117,6 @@ export default function Dashboard() {
                 opens the command palette
               </div>
             </div>
-
-            {/* Recent Tools */}
-            <RecentTools onSelectCategory={onSelectRecentCategory} />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="pdf" className="focus-visible:outline-none mt-4">
