@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCcw, FileText, Image, File, Archive } from "lucide-react";
 import ProcessingStatus from "../shared/ProcessingStatus";
@@ -7,6 +7,7 @@ import ToolCard from "../shared/ToolCard";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { type Step } from "../shared/StepIndicator";
 import { useToast } from "@/components/ui/use-toast";
+import { useSelection } from "../../context/SelectionContext";
 
 type ConverterId =
   | "docx-to-pdf"
@@ -42,6 +43,14 @@ export default function ConvertTools() {
   const [files, setFiles] = useState<File[]>([]);
   const { status, progress, convertFiles } = useConverter();
   const { toast } = useToast();
+  const { files: selFiles, setSelection, clearSelection } = useSelection();
+
+  // Sync with global selection (if user came from Welcome)
+  useEffect(() => {
+    if (selFiles.length > 0) {
+      setFiles(selFiles);
+    }
+  }, [selFiles]);
 
   const converters: ConverterDef[] = [
     { id: "docx-to-pdf", title: "DOCX → PDF", description: "Convert Word documents to PDF", icon: FileText, exts: [".docx"] },
@@ -119,6 +128,11 @@ export default function ConvertTools() {
     return "Convert";
   };
 
+  const handleFilesSelected = (newFiles: File[]) => {
+    setFiles(newFiles);
+    setSelection(newFiles, "convert");
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -135,7 +149,7 @@ export default function ConvertTools() {
           <StepIndicator steps={steps} className="mb-4" />
 
           <AdvancedDropZone
-            onFilesSelected={setFiles}
+            onFilesSelected={handleFilesSelected}
             acceptedTypes={ALL_ACCEPTED_EXTS}
             maxFiles={20}
             className="mb-4"

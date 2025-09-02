@@ -13,11 +13,16 @@ import QuickActionFab from "./QuickActionFab";
 import SideNav from "./SideNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import FloatingParticles from "./shared/FloatingParticles";
+import WelcomeUpload from "./WelcomeUpload";
+import { useSelection } from "../context/SelectionContext";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("pdf");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { files, category } = useSelection();
+
+  const hasSelectedFiles = files.length > 0;
 
   useEffect(() => {
     let raf: number;
@@ -35,11 +40,19 @@ export default function Dashboard() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // When files are selected on the welcome screen, auto-navigate to detected category.
+  useEffect(() => {
+    if (hasSelectedFiles && category) {
+      setActiveTab(category);
+    }
+  }, [hasSelectedFiles, category]);
+
   const handleCommandSelect = (val: string) => {
     setActiveTab(val);
   };
 
   const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
+    // Sidebar/menus just change highlight (tab), content shows Welcome until files exist.
     setActiveTab(tab);
   };
 
@@ -118,27 +131,36 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsContent value="pdf" className="focus-visible:outline-none mt-4">
-                <PDFTools />
-              </TabsContent>
+            {/* If no files have been selected yet, always show the welcome upload screen.
+                Sidebar clicks will only change the highlight, not the content. */}
+            {!hasSelectedFiles ? (
+              <WelcomeUpload
+                onProceed={(cat) => setActiveTab(cat)}
+                activeTab={activeTab as any}
+              />
+            ) : (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsContent value="pdf" className="focus-visible:outline-none mt-4">
+                  <PDFTools />
+                </TabsContent>
 
-              <TabsContent value="image" className="focus-visible:outline-none mt-4">
-                <ImageTools />
-              </TabsContent>
+                <TabsContent value="image" className="focus-visible:outline-none mt-4">
+                  <ImageTools />
+                </TabsContent>
 
-              <TabsContent value="convert" className="focus-visible:outline-none mt-4">
-                <ConvertTools />
-              </TabsContent>
+                <TabsContent value="convert" className="focus-visible:outline-none mt-4">
+                  <ConvertTools />
+                </TabsContent>
 
-              <TabsContent value="tools" className="focus-visible:outline-none mt-4">
-                <ToolsView />
-              </TabsContent>
+                <TabsContent value="tools" className="focus-visible:outline-none mt-4">
+                  <ToolsView />
+                </TabsContent>
 
-              <TabsContent value="stats" className="focus-visible:outline-none mt-4">
-                <StatsView />
-              </TabsContent>
-            </Tabs>
+                <TabsContent value="stats" className="focus-visible:outline-none mt-4">
+                  <StatsView />
+                </TabsContent>
+              </Tabs>
+            )}
           </section>
         </div>
       </main>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Image as ImageIcon,
@@ -22,6 +22,7 @@ import StepIndicator, { type Step } from "../shared/StepIndicator";
 import ImageEnhanceDialog from "./ImageEnhanceDialog";
 import ImageOperationDialog from "./ImageOperationDialog";
 import type { ImageEnhanceOptions, ImageOperation } from "@/utils/imageProcessor";
+import { useSelection } from "../../context/SelectionContext";
 
 type ConfigurableOperation =
   | "resize"
@@ -42,6 +43,14 @@ export default function ImageTools() {
   const [currentOperation, setCurrentOperation] = useState<ConfigurableOperation | null>(null);
 
   const { status, progress, processFiles, resultFiles, downloadResults } = useImageProcessor();
+  const { files: selFiles, setSelection } = useSelection();
+
+  // Sync with global selection
+  useEffect(() => {
+    if (selFiles.length > 0) {
+      setFiles(selFiles);
+    }
+  }, [selFiles]);
 
   const imageTools = [
     { id: "enhance", title: "Enhance", description: "Auto-enhance (sharpen, denoise, levels)", icon: Wand2, action: () => setEnhanceOpen(true) },
@@ -88,6 +97,11 @@ export default function ImageTools() {
     setOpDialogOpen(false);
   }
 
+  const handleFilesSelected = (newFiles: File[]) => {
+    setFiles(newFiles);
+    setSelection(newFiles, "image");
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -101,7 +115,7 @@ export default function ImageTools() {
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
 
-          <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={acceptedImageTypes} maxFiles={20} className="mb-4" />
+          <AdvancedDropZone onFilesSelected={handleFilesSelected} acceptedTypes={acceptedImageTypes} maxFiles={20} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />
 

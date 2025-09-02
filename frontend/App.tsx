@@ -6,6 +6,7 @@ import Dashboard from "./components/Dashboard";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import "./utils/errorReporting"; // Initialize error reporting
+import { SelectionProvider } from "./context/SelectionContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,14 +22,16 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider delayDuration={150}>
-            <div className="min-h-screen bg-background text-foreground">
-              <Dashboard />
-              <Toaster />
-            </div>
-          </TooltipProvider>
-        </QueryClientProvider>
+        <SelectionProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider delayDuration={150}>
+              <div className="min-h-screen bg-background text-foreground">
+                <Dashboard />
+                <Toaster />
+              </div>
+            </TooltipProvider>
+          </QueryClientProvider>
+        </SelectionProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

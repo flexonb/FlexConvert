@@ -21,6 +21,7 @@ import ToolCard from "../shared/ToolCard";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { Step } from "../shared/StepIndicator";
+import { useSelection } from "../../context/SelectionContext";
 
 export default function PDFTools() {
   const [files, setFiles] = useState<File[]>([]);
@@ -35,6 +36,14 @@ export default function PDFTools() {
     cancelConfig,
     loadInfo,
   } = usePDFProcessor();
+  const { files: selFiles, setSelection } = useSelection();
+
+  useEffect(() => {
+    // Sync with global selection (from Welcome)
+    if (selFiles.length > 0) {
+      setFiles(selFiles);
+    }
+  }, [selFiles]);
 
   useEffect(() => {
     // Load PDF metadata when a single PDF is selected to power better UX and validation
@@ -176,6 +185,12 @@ export default function PDFTools() {
     ];
   }, [files.length, needsConfig, stage, status]);
 
+  const handleFilesSelected = (newFiles: File[]) => {
+    setFiles(newFiles);
+    // Sync to global selection as PDF category
+    setSelection(newFiles, "pdf");
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -189,7 +204,7 @@ export default function PDFTools() {
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
 
-          <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={[".pdf"]} maxFiles={10} className="mb-4" />
+          <AdvancedDropZone onFilesSelected={handleFilesSelected} acceptedTypes={[".pdf"]} maxFiles={10} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />
 
