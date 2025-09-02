@@ -3,22 +3,14 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
 import {
-  docxToPdf,
   imagesToPdf,
-  pdfToDocx,
-  pptxToPdf,
   txtToPdf,
-  xlsxToPdf,
   extractZip,
 } from "../utils/fileConverters";
 
 type ConversionType =
-  | "docx-to-pdf"
-  | "pptx-to-pdf"
-  | "xlsx-to-pdf"
   | "txt-to-pdf"
   | "images-to-pdf"
-  | "pdf-to-docx"
   | "extract-zip";
 
 export function useConverter() {
@@ -62,26 +54,6 @@ export function useConverter() {
           results.push(...out);
           break;
         }
-        case "docx-to-pdf": {
-          const out = await docxToPdf(files, update);
-          results.push(...out);
-          break;
-        }
-        case "xlsx-to-pdf": {
-          const out = await xlsxToPdf(files, update);
-          results.push(...out);
-          break;
-        }
-        case "pptx-to-pdf": {
-          const out = await pptxToPdf(files, update);
-          results.push(...out);
-          break;
-        }
-        case "pdf-to-docx": {
-          const out = await pdfToDocx(files, update);
-          results.push(...out);
-          break;
-        }
         case "extract-zip": {
           const out = await extractZip(files, update);
           results.push(...out);
@@ -99,7 +71,7 @@ export function useConverter() {
 
       toast({
         title: "Conversion complete",
-        description: `Successfully converted ${files.length} file(s) using ${conversionType}`,
+        description: `Successfully processed ${files.length} file(s).`,
       });
 
       // Auto-download

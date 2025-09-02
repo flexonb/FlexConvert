@@ -47,13 +47,12 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **Color Adjustment**: Brightness, contrast, saturation
 - **Text Overlay**: Add text overlays to images
 
-### File Conversion Tools
-- **Document to PDF**: DOCX, PPTX, XLSX, TXT → PDF
-- **Images to PDF**: Combine images into PDF
-- **PDF to DOCX**: Convert PDF to Word (basic)
+### File Conversion Tools (Simple, fully in-browser)
+- **Images to PDF**: Combine images into a PDF
+- **Text to PDF**: Convert plain text files to PDF
 - **Extract ZIP**: Extract .zip archives in-browser
 
-Note: Advanced audio/video conversion and RAR extraction are not supported in the current in-browser build.
+Note: Office formats (DOCX, PPTX, XLSX) and PDF → DOCX are not included in the Convert section to ensure everything works reliably offline in the browser. Use the Image and PDF sections for their dedicated tools.
 
 ### Advanced Tools
 - **QR Code Generator**: Create customizable QR codes with various styling options

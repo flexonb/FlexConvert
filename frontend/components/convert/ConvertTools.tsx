@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, FileText, Image, File, Archive } from "lucide-react";
+import { RefreshCcw, FileText, Image, Archive } from "lucide-react";
 import ProcessingStatus from "../shared/ProcessingStatus";
 import { useConverter } from "../../hooks/useConverter";
 import ToolCard from "../shared/ToolCard";
@@ -10,12 +10,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSelection } from "../../context/SelectionContext";
 
 type ConverterId =
-  | "docx-to-pdf"
-  | "pptx-to-pdf"
-  | "xlsx-to-pdf"
   | "txt-to-pdf"
   | "images-to-pdf"
-  | "pdf-to-docx"
   | "extract-zip";
 
 interface ConverterDef {
@@ -27,15 +23,11 @@ interface ConverterDef {
 }
 
 const ALL_ACCEPTED_EXTS = [
-  ".docx",
-  ".pptx",
-  ".xlsx",
   ".txt",
   ".jpg",
   ".jpeg",
   ".png",
   ".webp",
-  ".pdf",
   ".zip",
 ];
 
@@ -43,7 +35,7 @@ export default function ConvertTools() {
   const [files, setFiles] = useState<File[]>([]);
   const { status, progress, convertFiles } = useConverter();
   const { toast } = useToast();
-  const { files: selFiles, setSelection, clearSelection } = useSelection();
+  const { files: selFiles, setSelection } = useSelection();
 
   // Sync with global selection (if user came from Welcome)
   useEffect(() => {
@@ -53,12 +45,8 @@ export default function ConvertTools() {
   }, [selFiles]);
 
   const converters: ConverterDef[] = [
-    { id: "docx-to-pdf", title: "DOCX → PDF", description: "Convert Word documents to PDF", icon: FileText, exts: [".docx"] },
-    { id: "pptx-to-pdf", title: "PPTX → PDF", description: "Convert PowerPoint to PDF", icon: FileText, exts: [".pptx"] },
-    { id: "xlsx-to-pdf", title: "XLSX → PDF", description: "Convert Excel to PDF", icon: FileText, exts: [".xlsx"] },
-    { id: "txt-to-pdf", title: "TXT → PDF", description: "Convert text files to PDF", icon: File, exts: [".txt"] },
     { id: "images-to-pdf", title: "Images → PDF", description: "Combine images into a single PDF", icon: Image, exts: [".jpg", ".jpeg", ".png", ".webp"] },
-    { id: "pdf-to-docx", title: "PDF → DOCX", description: "Convert PDF to Word (basic)", icon: FileText, exts: [".pdf"] },
+    { id: "txt-to-pdf", title: "TXT → PDF", description: "Convert text files to PDF", icon: FileText, exts: [".txt"] },
     { id: "extract-zip", title: "Extract ZIP", description: "Extract .zip archive files", icon: Archive, exts: [".zip"] },
   ];
 
@@ -80,7 +68,7 @@ export default function ConvertTools() {
   const fileExt = (f: File) => {
     const m = /\.([^.]+)$/.exec(f.name);
     return m ? `.${m[1].toLowerCase()}` : "";
-  };
+    };
 
   const selectedExts = useMemo(() => {
     if (files.length === 0) return null;
@@ -125,7 +113,7 @@ export default function ConvertTools() {
     if (files.length === 0) return "Select files";
     const count = supportedCountFor(conv);
     if (count === 0) return "No supported files";
-    return "Convert";
+    return conv.id === "extract-zip" ? "Extract" : "Convert";
   };
 
   const handleFilesSelected = (newFiles: File[]) => {
@@ -139,7 +127,7 @@ export default function ConvertTools() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCcw className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            File Conversion Tools
+            Simple Conversions
           </CardTitle>
           <CardDescription>
             Only fully supported, in-browser conversions are shown. All processing happens locally.

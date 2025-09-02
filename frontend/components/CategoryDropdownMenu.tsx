@@ -59,14 +59,10 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
     { icon: Type, label: "Add Text", desc: "Text overlay" },
   ];
 
-  // Only include conversion tools that are fully supported in-browser.
+  // Convert tools simplified to easy, fully in-browser operations.
   const convertTools = [
-    { icon: FileText, label: "DOCX → PDF", desc: "Word documents to PDF" },
-    { icon: FileText, label: "PPTX → PDF", desc: "PowerPoint to PDF" },
-    { icon: FileText, label: "XLSX → PDF", desc: "Excel to PDF" },
-    { icon: File, label: "TXT → PDF", desc: "Text files to PDF" },
     { icon: Image, label: "Images → PDF", desc: "Combine images" },
-    { icon: FileText, label: "PDF → DOCX", desc: "PDF to Word (basic)" },
+    { icon: FileText, label: "TXT → PDF", desc: "Text files to PDF" },
     { icon: Archive, label: "Extract ZIP", desc: "Unpack .zip archives" },
   ];
 
@@ -186,7 +182,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
                     File Conversion
                   </div>
                   <p className="text-sm leading-tight text-purple-700 dark:text-purple-200">
-                    Convert between supported formats locally in your browser.
+                    Simple, fully in-browser conversions for reliability.
                   </p>
                 </div>
               </div>
