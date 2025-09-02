@@ -10,7 +10,6 @@ import ToolsView from "./tools/ToolsView";
 import Footer from "./Footer";
 import CommandPalette from "./CommandPalette";
 import QuickActionFab from "./QuickActionFab";
-import RecentTools from "./RecentTools";
 import type { ToolCategory } from "../utils/recentTools";
 import SideNav from "./SideNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -125,8 +124,6 @@ export default function Dashboard() {
 
             {/* Quick Links */}
             <QuickLinks onSelectTab={(id) => setActiveTab(id)} />
-
-            <RecentTools onSelectCategory={onSelectRecentCategory} />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="pdf" className="focus-visible:outline-none mt-4">

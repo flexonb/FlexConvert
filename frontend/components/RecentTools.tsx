@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 interface RecentToolsProps {
   onSelectCategory: (category: ToolCategory) => void;
+  compact?: boolean;
 }
 
-export default function RecentTools({ onSelectCategory }: RecentToolsProps) {
+export default function RecentTools({ onSelectCategory, compact = false }: RecentToolsProps) {
   const [recent, setRecent] = useState<RecentTool[]>([]);
 
   useEffect(() => {
@@ -64,8 +65,11 @@ export default function RecentTools({ onSelectCategory }: RecentToolsProps) {
 
   const totalCount = recent.reduce((sum, r) => sum + (r.count || 1), 0);
 
+  const containerClass = compact ? "w-full mb-4" : "w-full max-w-4xl mx-auto mb-8";
+  const gridClass = compact ? "grid grid-cols-1 gap-2" : "grid grid-cols-2 md:grid-cols-4 gap-3";
+
   return (
-    <div className="w-full max-w-4xl mx-auto mb-8">
+    <div className={containerClass}>
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
@@ -87,7 +91,7 @@ export default function RecentTools({ onSelectCategory }: RecentToolsProps) {
         </Button>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className={gridClass}>
         {recent.map((t) => {
           const style = styleFor(t.category);
           return (

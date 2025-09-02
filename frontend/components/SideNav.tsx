@@ -1,8 +1,9 @@
 import React from "react";
-import { FileText, Image, RefreshCcw, BarChart3, Command, Palette, Wand2 } from "lucide-react";
+import { FileText, Image, RefreshCcw, BarChart3, Command, Palette, Wand2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolCategory } from "../utils/recentTools";
 import { Button } from "@/components/ui/button";
+import RecentTools from "./RecentTools";
 
 type NavId = ToolCategory | "stats" | "tools";
 
@@ -144,6 +145,20 @@ export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProp
             <div className="text-xs text-gray-500 dark:text-gray-400">⌘K to open</div>
           </div>
         </Button>
+      </div>
+
+      {/* Recent History below Quick Actions */}
+      <div className="rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="w-3.5 h-3.5 text-gray-400" />
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Recent
+          </h4>
+        </div>
+        <RecentTools
+          compact
+          onSelectCategory={(cat) => onSelect(cat)}
+        />
       </div>
     </nav>
   );
