@@ -71,7 +71,22 @@ export default function ConvertTools() {
   const fileExt = (f: File) => {
     const m = /\.([^.]+)$/.exec(f.name);
     return m ? `.${m[1].toLowerCase()}` : "";
-    };
+  };
+
+  const selectedExts = useMemo(() => {
+    if (files.length === 0) return null;
+    const s = new Set<string>();
+    for (const f of files) {
+      const ext = fileExt(f);
+      if (ext) s.add(ext);
+    }
+    return s;
+  }, [files]);
+
+  const visibleConverters = useMemo(() => {
+    if (!selectedExts) return converters;
+    return converters.filter((conv) => conv.exts.some((e) => selectedExts.has(e)));
+  }, [converters, selectedExts]);
 
   const supportedCountFor = (conv: ConverterDef) => {
     return files.filter(f => conv.exts.includes(fileExt(f))).length;
@@ -112,7 +127,9 @@ export default function ConvertTools() {
             <RefreshCcw className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             File Conversion Tools
           </CardTitle>
-          <CardDescription>Only fully supported, in-browser conversions are shown. All processing happens locally.</CardDescription>
+          <CardDescription>
+            Only fully supported, in-browser conversions are shown. All processing happens locally.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
@@ -126,8 +143,14 @@ export default function ConvertTools() {
 
           <ProcessingStatus status={status} progress={progress} />
 
+          {files.length > 0 && visibleConverters.length === 0 && (
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              No compatible conversions found for the selected files. Please add supported file types or clear your selection.
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            {converters.map((converter) => {
+            {(files.length > 0 ? visibleConverters : converters).map((converter) => {
               const supported = supportedCountFor(converter);
               const disabled = status === "processing" || (files.length > 0 && supported === 0);
               return (
@@ -142,6 +165,7 @@ export default function ConvertTools() {
                   disabled={disabled}
                   buttonText={buttonTextFor(converter)}
                   buttonVariant={disabled && files.length > 0 ? "outline" : "default"}
+                  meta={files.length > 0 ? `${supported} of ${files.length} files supported` : undefined}
                 />
               );
             })}
