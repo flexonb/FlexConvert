@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("pdf");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const { files, category } = useSelection();
 
   const hasSelectedFiles = files.length > 0;
@@ -40,20 +41,23 @@ export default function Dashboard() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // When files are selected on the welcome screen, auto-navigate to detected category.
+  // When files are selected on the welcome screen, auto-navigate to detected category and show tools.
   useEffect(() => {
     if (hasSelectedFiles && category) {
       setActiveTab(category);
+      setShowWelcome(false);
     }
   }, [hasSelectedFiles, category]);
 
   const handleCommandSelect = (val: string) => {
     setActiveTab(val);
+    setShowWelcome(false);
   };
 
   const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
-    // Sidebar/menus just change highlight (tab), content shows Welcome until files exist.
+    // Sidebar/menus navigate directly to the selected tool.
     setActiveTab(tab);
+    setShowWelcome(false);
   };
 
   const tabMeta = useMemo(
@@ -114,7 +118,10 @@ export default function Dashboard() {
             <div className="sticky top-20">
               <SideNav
                 active={activeTab as any}
-                onSelect={(id) => setActiveTab(id)}
+                onSelect={(id) => {
+                  setActiveTab(id);
+                  setShowWelcome(false);
+                }}
                 onOpenPalette={() => setPaletteOpen(true)}
               />
             </div>
@@ -131,11 +138,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* If no files have been selected yet, always show the welcome upload screen.
-                Sidebar clicks will only change the highlight, not the content. */}
-            {!hasSelectedFiles ? (
+            {/* Welcome screen initially, replaced by tool sections on navigation */}
+            {showWelcome ? (
               <WelcomeUpload
-                onProceed={(cat) => setActiveTab(cat)}
+                onProceed={(cat) => {
+                  setActiveTab(cat);
+                  setShowWelcome(false);
+                }}
                 activeTab={activeTab as any}
               />
             ) : (
@@ -179,6 +188,7 @@ export default function Dashboard() {
               active={activeTab as any}
               onSelect={(id) => {
                 setActiveTab(id);
+                setShowWelcome(false);
                 setMobileNavOpen(false);
               }}
               onOpenPalette={() => {
