@@ -89,12 +89,12 @@ export default function Footer() {
                 <Github className="w-4 h-4" />
               </a>
               <a
-                href="https://twitter.com/"
+                href="https://x.com/bugingoflexon"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Twitter / X"
-                title="Twitter / X"
+                aria-label="X (Twitter)"
+                title="X (Twitter) @bugingoflexon"
               >
                 <Twitter className="w-4 h-4" />
               </a>
