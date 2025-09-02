@@ -1,8 +1,8 @@
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import * as pdfjsLib from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 
 // Configure PDF.js worker to a known stable version to avoid mismatches.
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
 export interface PDFProcessingOptions {
   quality?: number;
@@ -293,7 +293,7 @@ export class PDFProcessor {
     await this.validatePDFBuffer(arrayBuffer);
     
     try {
-      const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
+      const pdf = await getDocument({ data: arrayBuffer }).promise;
       const images: Blob[] = [];
       const format = options.imageFormat || 'png';
       
