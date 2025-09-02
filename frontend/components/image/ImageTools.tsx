@@ -10,7 +10,8 @@ import {
   Palette,
   Sun,
   Type,
-  Wand2
+  Wand2,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProcessingStatus from "../shared/ProcessingStatus";
@@ -40,7 +41,7 @@ export default function ImageTools() {
   const [opDialogOpen, setOpDialogOpen] = useState(false);
   const [currentOperation, setCurrentOperation] = useState<ConfigurableOperation | null>(null);
 
-  const { status, progress, processFiles } = useImageProcessor();
+  const { status, progress, processFiles, resultFiles, downloadResults } = useImageProcessor();
 
   const imageTools = [
     { id: "enhance", title: "Enhance", description: "Auto-enhance (sharpen, denoise, levels)", icon: Wand2, action: () => setEnhanceOpen(true) },
@@ -114,14 +115,18 @@ export default function ImageTools() {
                 accent={tool.id === "enhance" ? "amber" : "green"}
                 onClick={tool.action}
                 disabled={files.length === 0 || status === "processing"}
-                buttonText={files.length === 0 ? "Select files" : tool.id === "enhance" ? "Configure" : "Configure"}
+                buttonText={files.length === 0 ? "Select files" : "Configure"}
                 buttonVariant={files.length === 0 ? "outline" : "default"}
               />
             ))}
           </div>
 
           {status === "success" && (
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end mt-2 gap-2">
+              <Button size="sm" variant="secondary" onClick={downloadResults}>
+                <Download className="w-4 h-4 mr-2" />
+                Download Results ({resultFiles.length})
+              </Button>
               <Button size="sm" variant="outline" onClick={() => setFiles([])}>Clear Selection</Button>
             </div>
           )}

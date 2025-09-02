@@ -19,7 +19,7 @@ import {
 export function useImageProcessor() {
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
-  const [resultFiles, setResultFiles] = useState<Blob[]>([]);
+  const [resultFiles, setResultFiles] = useState<{ blob: Blob; operation: ImageOperation; originalName: string }[]>([]);
   const { toast } = useToast();
 
   const updateProgress = (val: number) => setProgress(Math.max(0, Math.min(100, Math.round(val))));
@@ -36,6 +36,7 @@ export function useImageProcessor() {
 
     setStatus("processing");
     updateProgress(0);
+    setResultFiles([]);
 
     try {
       await backend.analytics.trackUsage({
@@ -44,12 +45,11 @@ export function useImageProcessor() {
         fileCount: files.length,
       });
 
-      const results: Blob[] = [];
+      const results: { blob: Blob; operation: ImageOperation; originalName: string }[] = [];
       let i = 0;
 
       for (const file of files) {
         i++;
-        // Basic MIME/type validation
         if (!file.type.startsWith("image/")) {
           throw new Error(`"${file.name}" is not an image file.`);
         }
@@ -90,7 +90,7 @@ export function useImageProcessor() {
             throw new Error(`Unsupported operation: ${operation as string}`);
         }
 
-        results.push(blob);
+        results.push({ blob, operation, originalName: file.name });
         updateProgress((i / files.length) * 100);
       }
 
@@ -101,29 +101,9 @@ export function useImageProcessor() {
 
       toast({
         title: "Processing complete",
-        description: `Successfully processed ${files.length} image(s) with ${operation}`,
+        description: `Successfully processed ${files.length} image(s). Ready to download.`,
       });
 
-      // Auto-download results
-      results.forEach((blob, index) => {
-        const url = URL.createObjectURL(blob);
-        const ext = blob.type.includes("png")
-          ? "png"
-          : blob.type.includes("webp")
-          ? "webp"
-          : blob.type.includes("gif")
-          ? "gif"
-          : blob.type.includes("bmp")
-          ? "bmp"
-          : "jpg";
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `processed-${operation}-${index + 1}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
     } catch (error) {
       console.error("Image processing error:", error);
       setStatus("error");
@@ -150,10 +130,28 @@ export function useImageProcessor() {
     }
   };
 
+  const downloadResults = () => {
+    if (resultFiles.length === 0) return;
+
+    resultFiles.forEach(({ blob, operation, originalName }, index) => {
+      const url = URL.createObjectURL(blob);
+      const ext = blob.type.split('/')[1] || 'jpg';
+      const baseName = originalName.replace(/\.[^/.]+$/, "");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${baseName}-${operation}-${index + 1}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  };
+
   return {
     status,
     progress,
     processFiles,
     resultFiles,
+    downloadResults,
   };
 }
