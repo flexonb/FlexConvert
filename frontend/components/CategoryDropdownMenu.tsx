@@ -24,8 +24,6 @@ import {
   Palette,
   Sun,
   Type,
-  Video,
-  Music,
   File,
   Wand2,
   QrCode
@@ -61,6 +59,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
     { icon: Type, label: "Add Text", desc: "Text overlay" },
   ];
 
+  // Only include conversion tools that are fully supported in-browser.
   const convertTools = [
     { icon: FileText, label: "DOCX → PDF", desc: "Word documents to PDF" },
     { icon: FileText, label: "PPTX → PDF", desc: "PowerPoint to PDF" },
@@ -68,9 +67,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
     { icon: File, label: "TXT → PDF", desc: "Text files to PDF" },
     { icon: Image, label: "Images → PDF", desc: "Combine images" },
     { icon: FileText, label: "PDF → DOCX", desc: "PDF to Word (basic)" },
-    { icon: Video, label: "Video Convert", desc: "Between video formats" },
-    { icon: Music, label: "Audio Convert", desc: "Between audio formats" },
-    { icon: Archive, label: "Extract Archive", desc: "ZIP/RAR extraction" },
+    { icon: Archive, label: "Extract ZIP", desc: "Unpack .zip archives" },
   ];
 
   const advancedTools = [
@@ -189,7 +186,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
                     File Conversion
                   </div>
                   <p className="text-sm leading-tight text-purple-700 dark:text-purple-200">
-                    Convert between different file formats including documents, images, audio and video.
+                    Convert between supported formats locally in your browser.
                   </p>
                 </div>
               </div>
