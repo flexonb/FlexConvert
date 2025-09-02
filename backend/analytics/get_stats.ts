@@ -34,15 +34,15 @@ function buildWhereClause(params: { days?: number; category?: string }) {
   }
 
   if (params.category) {
-    args.push(params.category);
-    conds.push(`tool_category = $${args.length}`);
+    args.push(params.category.toLowerCase());
+    conds.push(`category = $${args.length}`);
   }
 
   const clause = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
   return { clause, args };
 }
 
-// Retrieves usage statistics for all tools, with optional filters and daily time series.
+// Retrieves aggregate usage statistics and a daily time series for analytics events.
 export const getStats = api<GetStatsParams, GetStatsResponse>(
   { expose: true, method: "GET", path: "/analytics/stats" },
   async (req) => {
@@ -52,60 +52,68 @@ export const getStats = api<GetStatsParams, GetStatsResponse>(
     };
     const { clause, args } = buildWhereClause(params);
 
+    // Aggregate per tool
     const stats = await analyticsDB.rawQueryAll<{
-      tool_category: string;
-      tool_name: string;
+      category: string;
+      name: string;
       total_usage: string;
-      success_count: string;
+      success_count: string | null;
     }>(
       `
-      SELECT 
-        tool_category,
-        tool_name,
-        COUNT(*) as total_usage,
-        SUM(CASE WHEN success THEN 1 ELSE 0 END) as success_count
-      FROM usage_stats
+      SELECT
+        category,
+        name,
+        COUNT(*) AS total_usage,
+        SUM(CASE WHEN success THEN 1 ELSE 0 END) AS success_count
+      FROM analytics_events
       ${clause}
-      GROUP BY tool_category, tool_name
+      GROUP BY category, name
       ORDER BY total_usage DESC
-    `,
+      `,
       ...args
     );
 
+    // Total operations
     const totalOperationsRow = await analyticsDB.rawQueryRow<{ count: string }>(
       `
       SELECT COUNT(*) AS count
-      FROM usage_stats
+      FROM analytics_events
       ${clause}
-    `,
+      `,
       ...args
     );
 
-    const series = await analyticsDB.rawQueryAll<{ day: Date; count: string }>(
+    // Daily time series
+    const series = await analyticsDB.rawQueryAll<{ day: string | Date; count: string }>(
       `
       SELECT date_trunc('day', created_at) AS day, COUNT(*) AS count
-      FROM usage_stats
+      FROM analytics_events
       ${clause}
       GROUP BY 1
       ORDER BY 1 ASC
-    `,
+      `,
       ...args
     );
 
     return {
-      stats: stats.map((stat) => ({
-        toolCategory: stat.tool_category,
-        toolName: stat.tool_name,
-        totalUsage: parseInt(stat.total_usage, 10),
-        successRate:
-          parseInt(stat.success_count || "0", 10) /
-          Math.max(parseInt(stat.total_usage || "1", 10), 1),
-      })),
+      stats: stats.map((s) => {
+        const total = parseInt(s.total_usage || "0", 10);
+        const success = parseInt(s.success_count || "0", 10);
+        return {
+          toolCategory: s.category,
+          toolName: s.name,
+          totalUsage: total,
+          successRate: total > 0 ? success / total : 0,
+        };
+      }),
       totalOperations: parseInt(totalOperationsRow?.count || "0", 10),
-      timeSeries: series.map((s) => ({
-        date: s.day.toISOString().substring(0, 10),
-        count: parseInt(s.count, 10),
-      })),
+      timeSeries: series.map((row) => {
+        const d = row.day instanceof Date ? row.day : new Date(row.day);
+        return {
+          date: d.toISOString().slice(0, 10),
+          count: parseInt(row.count || "0", 10),
+        };
+      }),
     };
   }
 );

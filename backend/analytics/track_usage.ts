@@ -10,25 +10,32 @@ export interface TrackUsageRequest {
 
 const ALLOWED_CATEGORIES = new Set(["pdf", "image", "convert"]);
 
-// Tracks usage statistics for FlexConvert tools.
+// Tracks a single anonymous tool usage event.
 export const trackUsage = api<TrackUsageRequest, void>(
   { expose: true, method: "POST", path: "/analytics/track" },
   async (req) => {
     const category = (req.toolCategory || "").toLowerCase().trim();
-    const toolName = (req.toolName || "").toLowerCase().trim();
-    const fileCount = Number.isFinite(req.fileCount) && (req.fileCount as number) > 0 ? Math.floor(req.fileCount as number) : 1;
+    const name = (req.toolName || "").toLowerCase().trim();
+    const fileCount =
+      Number.isFinite(req.fileCount) && (req.fileCount as number) > 0
+        ? Math.floor(req.fileCount as number)
+        : 1;
     const success = req.success ?? true;
 
     if (!ALLOWED_CATEGORIES.has(category)) {
-      throw APIError.invalidArgument(`invalid tool category: "${req.toolCategory}". Allowed: pdf, image, convert`);
+      throw APIError.invalidArgument(
+        `invalid tool category: "${req.toolCategory}". Allowed: pdf, image, convert`
+      );
     }
-    if (!toolName || toolName.length > 100) {
-      throw APIError.invalidArgument("toolName must be a non-empty string up to 100 characters");
+    if (!name || name.length > 128) {
+      throw APIError.invalidArgument(
+        "toolName must be a non-empty string up to 128 characters"
+      );
     }
 
     await analyticsDB.exec`
-      INSERT INTO usage_stats (tool_category, tool_name, file_count, success)
-      VALUES (${category}, ${toolName}, ${fileCount}, ${success})
+      INSERT INTO analytics_events (category, name, file_count, success)
+      VALUES (${category}, ${name}, ${fileCount}, ${success})
     `;
   }
 );
