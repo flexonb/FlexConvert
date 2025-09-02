@@ -2,7 +2,7 @@ import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configure PDF.js worker to a known stable version to avoid mismatches.
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.170/pdf.worker.min.js`;
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
 export interface PDFProcessingOptions {
   quality?: number;
