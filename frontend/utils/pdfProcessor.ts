@@ -1,4 +1,4 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configure PDF.js worker to a known stable version to avoid mismatches.
@@ -103,21 +103,15 @@ export class PDFProcessor {
     return splitPDFs;
   }
 
-  static async compressPDF(file: File, options: PDFProcessingOptions = {}): Promise<Blob> {
+  static async compressPDF(file: File, _options: PDFProcessingOptions = {}): Promise<Blob> {
     await this.validatePDFFile(file);
     
     const arrayBuffer = await file.arrayBuffer();
     await this.validatePDFBuffer(arrayBuffer);
     
     const pdf = await PDFDocument.load(arrayBuffer);
-    
-    // Basic compression by removing unused objects and optimizing
-    const pdfBytes = await pdf.save({
-      useObjectStreams: true,
-      addDefaultPage: false,
-      objectsPerTick: 50,
-    });
-    
+    // Basic "compression": re-save to remove redundant objects where possible.
+    const pdfBytes = await pdf.save();
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -129,15 +123,16 @@ export class PDFProcessor {
     
     const pdf = await PDFDocument.load(arrayBuffer);
     const pages = pdf.getPages();
-    const rotation = options.rotation || 90;
+    const rotation = options.rotation ?? 90;
     
     if (pages.length === 0) {
       throw new Error('PDF has no pages to rotate.');
     }
     
     pages.forEach(page => {
-      const currentRotation = page.getRotation().angle;
-      page.setRotation({ type: 'degrees', angle: currentRotation + rotation });
+      const currentRotation = page.getRotation().angle || 0;
+      const newAngle = ((currentRotation + rotation) % 360 + 360) % 360;
+      page.setRotation(degrees(newAngle));
     });
     
     const pdfBytes = await pdf.save();
@@ -277,7 +272,7 @@ export class PDFProcessor {
         font,
         color: rgb(0.7, 0.7, 0.7),
         opacity,
-        rotate: { type: 'degrees', angle: 45 },
+        rotate: degrees(45),
       });
     });
     
@@ -292,7 +287,7 @@ export class PDFProcessor {
     await this.validatePDFBuffer(arrayBuffer);
     
     try {
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
       const images: Blob[] = [];
       const format = options.imageFormat || 'png';
       
@@ -321,9 +316,9 @@ export class PDFProcessor {
         }).promise;
         
         const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
+          canvas.toBlob((b) => {
+            if (b) {
+              resolve(b);
             } else {
               reject(new Error('Failed to convert canvas to blob'));
             }

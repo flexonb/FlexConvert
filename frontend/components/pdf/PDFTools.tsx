@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FileText,
@@ -20,6 +20,7 @@ import { usePDFProcessor } from "../../hooks/usePDFProcessor";
 import ToolCard from "../shared/ToolCard";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
+import StepIndicator, { Step } from "../shared/StepIndicator";
 
 export default function PDFTools() {
   const [files, setFiles] = useState<File[]>([]);
@@ -136,6 +137,25 @@ export default function PDFTools() {
     return "Process";
   };
 
+  // Clear flow indicator for PDF processing
+  const stage: "select" | "configure" | "process" | "download" = useMemo(() => {
+    if (files.length === 0) return "select";
+    if (needsConfig) return "configure";
+    if (status === "processing") return "process";
+    if (status === "success") return "download";
+    return "process";
+  }, [files.length, needsConfig, status]);
+
+  const steps: Step[] = useMemo(() => {
+    const configureDoneOrSkipped = files.length > 0 && !needsConfig && (status === "processing" || status === "success");
+    return [
+      { id: "select", label: "Select Files", status: stage === "select" ? "current" : "complete" },
+      { id: "configure", label: "Configure", status: stage === "configure" ? "current" : (configureDoneOrSkipped ? "complete" : stage === "select" ? "upcoming" : "upcoming") },
+      { id: "process", label: "Process", status: stage === "process" ? "current" : (stage === "download" ? "complete" : "upcoming") },
+      { id: "download", label: "Download", status: stage === "download" ? "current" : "upcoming" },
+    ];
+  }, [files.length, needsConfig, stage, status]);
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-md bg-white/70 dark:bg-gray-900/60 backdrop-blur">
@@ -147,6 +167,8 @@ export default function PDFTools() {
           <CardDescription>Select PDF files and choose a tool to process them. All processing happens locally in your browser.</CardDescription>
         </CardHeader>
         <CardContent>
+          <StepIndicator steps={steps} className="mb-4" />
+
           <AdvancedDropZone onFilesSelected={setFiles} acceptedTypes={["application/pdf"]} maxFiles={10} className="mb-4" />
 
           <ProcessingStatus status={status} progress={progress} />

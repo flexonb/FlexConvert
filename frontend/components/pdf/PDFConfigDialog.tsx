@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,17 @@ export default function PDFConfigDialog({
   
   const [validationError, setValidationError] = useState<string>("");
 
+  // Keep derived defaults in sync when pageCount changes
+  useEffect(() => {
+    setOptions(prev => ({
+      ...prev,
+      pageRange: {
+        start: prev.pageRange?.start ?? 0,
+        end: Math.max(0, Math.min((prev.pageRange?.end ?? pageCount - 1), pageCount - 1)),
+      }
+    }));
+  }, [pageCount]);
+
   const validateAndConfirm = () => {
     setValidationError("");
     
@@ -58,6 +69,11 @@ export default function PDFConfigDialog({
           setValidationError(`Page order must contain exactly ${pageCount} page indices`);
           return;
         }
+        // Validate indices
+        if (options.pageOrder.some((idx) => idx < 0 || idx >= pageCount)) {
+          setValidationError(`Invalid page index in order. Valid indices are 0-${pageCount - 1}.`);
+          return;
+        }
         break;
         
       case "remove-pages":
@@ -67,6 +83,10 @@ export default function PDFConfigDialog({
         }
         if (options.removePages.length >= pageCount) {
           setValidationError("Cannot remove all pages. At least one page must remain");
+          return;
+        }
+        if (options.removePages.some((idx) => idx < 0 || idx >= pageCount)) {
+          setValidationError(`Invalid page index in removal list. Valid indices are 0-${pageCount - 1}.`);
           return;
         }
         break;
@@ -106,7 +126,7 @@ export default function PDFConfigDialog({
                 onValueChange={(value) => setOptions(prev => ({ ...prev, rotation: parseInt(value) }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select angle" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="90">90° Clockwise</SelectItem>
@@ -156,7 +176,7 @@ export default function PDFConfigDialog({
                 onValueChange={(value: "png" | "jpeg") => setOptions(prev => ({ ...prev, imageFormat: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select format" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="png">PNG (Higher Quality)</SelectItem>
@@ -238,7 +258,7 @@ export default function PDFConfigDialog({
               <Label htmlFor="page-order">New Page Order (comma-separated, 0-indexed) *</Label>
               <Input
                 id="page-order"
-                placeholder={`e.g., ${Array.from({length: Math.min(pageCount, 5)}, (_, i) => i).reverse().join(',')}`}
+                placeholder={`e.g., ${Array.from({length: Math.min(pageCount, 5)}, (_, i) => i).reverse().join(',')}${pageCount > 5 ? ",..." : ""}`}
                 onChange={(e) => {
                   const order = e.target.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
                   setOptions(prev => ({ ...prev, pageOrder: order }));
@@ -354,17 +374,20 @@ function parsePageNumbers(input: string, maxPage: number): number[] {
   
   for (const part of parts) {
     const trimmed = part.trim();
+    if (!trimmed) continue;
     if (trimmed.includes('-')) {
-      const [start, end] = trimmed.split('-').map(s => parseInt(s.trim()));
+      const [startStr, endStr] = trimmed.split('-');
+      const start = parseInt(startStr.trim(), 10);
+      const end = parseInt(endStr.trim(), 10);
       if (!isNaN(start) && !isNaN(end)) {
-        for (let i = start; i <= end; i++) {
-          if (i >= 1 && i <= maxPage) {
-            pages.push(i - 1); // Convert to 0-indexed
-          }
+        const s1 = Math.max(1, Math.min(start, end));
+        const e1 = Math.min(maxPage, Math.max(start, end));
+        for (let i = s1; i <= e1; i++) {
+          pages.push(i - 1); // Convert to 0-indexed
         }
       }
     } else {
-      const pageNum = parseInt(trimmed);
+      const pageNum = parseInt(trimmed, 10);
       if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
         pages.push(pageNum - 1); // Convert to 0-indexed
       }
