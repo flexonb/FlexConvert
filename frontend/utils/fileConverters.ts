@@ -1,11 +1,12 @@
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import { Document, Packer, Paragraph, TextRun } from "docx";
-import * as pdfjsLib from "pdfjs-dist";
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
-// Configure PDF.js worker to a known stable version to avoid mismatches.
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker to be bundled with Vite.
+GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 type ProgressCb = (p: number) => void;
 
@@ -341,7 +342,7 @@ export async function pdfToDocx(files: File[], onProgress?: ProgressCb): Promise
   for (const f of files) {
     try {
       const arrayBuffer = await f.arrayBuffer();
-      const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
+      const pdf = await getDocument({ data: arrayBuffer }).promise;
       const docxParagraphs: Paragraph[] = [];
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
