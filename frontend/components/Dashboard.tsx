@@ -13,7 +13,7 @@ import QuickActionFab from "./QuickActionFab";
 import type { ToolCategory } from "../utils/recentTools";
 import SideNav from "./SideNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import QuickLinks from "./QuickLinks";
+import RecentTools from "./RecentTools";
 import FloatingParticles from "./shared/FloatingParticles";
 
 export default function Dashboard() {
@@ -122,8 +122,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Links */}
-            <QuickLinks onSelectTab={(id) => setActiveTab(id)} />
+            {/* Recent Tools */}
+            <RecentTools onSelectCategory={onSelectRecentCategory} />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="pdf" className="focus-visible:outline-none mt-4">
