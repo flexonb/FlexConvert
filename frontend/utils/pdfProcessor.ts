@@ -72,7 +72,7 @@ export class PDFProcessor {
       }
     }
     
-    const pdfBytes = await mergedPdf.save();
+    const pdfBytes = await mergedPdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -96,7 +96,7 @@ export class PDFProcessor {
       const [page] = await newPdf.copyPages(pdf, [i]);
       newPdf.addPage(page);
       
-      const pdfBytes = await newPdf.save();
+      const pdfBytes = await newPdf.save({ useObjectStreams: true });
       splitPDFs.push(new Blob([pdfBytes], { type: 'application/pdf' }));
     }
     
@@ -110,8 +110,8 @@ export class PDFProcessor {
     await this.validatePDFBuffer(arrayBuffer);
     
     const pdf = await PDFDocument.load(arrayBuffer);
-    // Basic "compression": re-save to remove redundant objects where possible.
-    const pdfBytes = await pdf.save();
+    // Basic "compression": re-save to remove redundant objects where possible and use object streams.
+    const pdfBytes = await pdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -135,7 +135,7 @@ export class PDFProcessor {
       page.setRotation(degrees(newAngle));
     });
     
-    const pdfBytes = await pdf.save();
+    const pdfBytes = await pdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -151,6 +151,11 @@ export class PDFProcessor {
     
     const pdf = await PDFDocument.load(arrayBuffer);
     const pageCount = pdf.getPageCount();
+
+    // Require full permutation to avoid accidental loss of pages
+    if (options.pageOrder.length !== pageCount) {
+      throw new Error(`Page order must contain exactly ${pageCount} page indices (0-${pageCount - 1}).`);
+    }
     
     // Validate page indices
     for (const pageIndex of options.pageOrder) {
@@ -163,7 +168,7 @@ export class PDFProcessor {
     const pages = await newPdf.copyPages(pdf, options.pageOrder);
     pages.forEach(page => newPdf.addPage(page));
     
-    const pdfBytes = await newPdf.save();
+    const pdfBytes = await newPdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -200,7 +205,7 @@ export class PDFProcessor {
       }
     }
     
-    const pdfBytes = await pdf.save();
+    const pdfBytes = await pdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -237,7 +242,7 @@ export class PDFProcessor {
       }
     }
     
-    const pdfBytes = await pdf.save();
+    const pdfBytes = await pdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -263,12 +268,13 @@ export class PDFProcessor {
     
     pages.forEach(page => {
       const { width, height } = page.getSize();
-      
-      // Add watermark text diagonally across the page
+      // scale font based on page width for better UX across sizes
+      const fontSize = Math.max(24, Math.round(Math.min(width, height) * 0.08));
+
       page.drawText(options.watermarkText!.trim(), {
         x: width / 4,
         y: height / 2,
-        size: 60,
+        size: fontSize,
         font,
         color: rgb(0.7, 0.7, 0.7),
         opacity,
@@ -276,7 +282,7 @@ export class PDFProcessor {
       });
     });
     
-    const pdfBytes = await pdf.save();
+    const pdfBytes = await pdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 
@@ -362,7 +368,7 @@ export class PDFProcessor {
     const pages = await newPdf.copyPages(pdf, pageIndices);
     pages.forEach(page => newPdf.addPage(page));
     
-    const pdfBytes = await newPdf.save();
+    const pdfBytes = await newPdf.save({ useObjectStreams: true });
     return new Blob([pdfBytes], { type: 'application/pdf' });
   }
 

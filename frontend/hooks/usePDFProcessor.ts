@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import { PDFProcessor, PDFProcessingOptions } from "../utils/pdfProcessor";
@@ -24,6 +24,17 @@ export function usePDFProcessor() {
   const [needsConfig, setNeedsConfig] = useState<{ operation: PDFOperation; files: File[] } | null>(null);
   const [pdfInfo, setPdfInfo] = useState<any>(null);
   const { toast } = useToast();
+
+  const loadInfo = useCallback(async (file: File) => {
+    try {
+      const info = await PDFProcessor.getPDFInfo(file);
+      setPdfInfo(info);
+      return info;
+    } catch (err) {
+      setPdfInfo(null);
+      throw err;
+    }
+  }, []);
 
   const processFiles = async (files: File[], operation: PDFOperation, options?: PDFProcessingOptions) => {
     if (files.length === 0) {
@@ -83,6 +94,14 @@ export function usePDFProcessor() {
       let result: Blob | Blob[] | null = null;
 
       try {
+        // Extra safety checks for specific operations
+        if (operation === "reorder" && options?.pageOrder) {
+          const info = pdfInfo ?? (await PDFProcessor.getPDFInfo(files[0]));
+          if (options.pageOrder.length !== info.pageCount) {
+            throw new Error(`Page order must contain exactly ${info.pageCount} page indices (0-${info.pageCount - 1}).`);
+          }
+        }
+
         switch (operation) {
           case "merge":
             result = await PDFProcessor.mergePDFs(files);
@@ -229,6 +248,7 @@ export function usePDFProcessor() {
     pdfInfo,
     handleConfigConfirm,
     cancelConfig,
+    loadInfo,
   };
 }
 

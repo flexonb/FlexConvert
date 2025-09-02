@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FileText,
@@ -24,8 +24,28 @@ import StepIndicator, { Step } from "../shared/StepIndicator";
 
 export default function PDFTools() {
   const [files, setFiles] = useState<File[]>([]);
-  const { status, progress, processFiles, downloadResult, needsConfig, pdfInfo, handleConfigConfirm, cancelConfig } =
-    usePDFProcessor();
+  const {
+    status,
+    progress,
+    processFiles,
+    downloadResult,
+    needsConfig,
+    pdfInfo,
+    handleConfigConfirm,
+    cancelConfig,
+    loadInfo,
+  } = usePDFProcessor();
+
+  useEffect(() => {
+    // Load PDF metadata when a single PDF is selected to power better UX and validation
+    const f = files[0];
+    if (files.length === 1 && f && f.type === "application/pdf") {
+      loadInfo(f).catch((err) => {
+        // metadata load is best-effort; ignore errors here (they will surface when processing)
+        console.error("Failed to load PDF info:", err);
+      });
+    }
+  }, [files, loadInfo]);
 
   const pdfTools = [
     {
