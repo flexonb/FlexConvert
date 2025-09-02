@@ -112,7 +112,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-200/50 dark:border-gray-800/50 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            Made with <Heart className="w-4 h-4 text-red-500" /> for privacy-conscious professionals
+            Made with <Heart className="w-4 h-4 text-red-500" /> by BUGINGO Flexon
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
             © {new Date().getFullYear()} FlexConvert. All rights reserved.
