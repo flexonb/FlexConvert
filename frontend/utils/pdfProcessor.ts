@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.js?url";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.entry.js?url";
 
 // Configure PDF.js worker to be bundled with Vite.
 GlobalWorkerOptions.workerSrc = pdfjsWorker;
