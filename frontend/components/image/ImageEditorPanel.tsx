@@ -115,7 +115,12 @@ export default function ImageEditorPanel({
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewUrl(url);
       } catch (err) {
-        // Silent for auto preview; user can still apply
+        console.error("Preview error:", err);
+        toast({
+          title: "Preview failed",
+          description: err instanceof Error ? err.message : "Could not generate preview.",
+          variant: "destructive",
+        });
       } finally {
         if (!cancelled) setIsGenerating(false);
       }
