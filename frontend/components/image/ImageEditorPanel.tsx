@@ -390,7 +390,7 @@ function OutputFormatQuality({
   return (
     <div className="grid grid-cols-2 gap-3">
       <FormatPicker value={format} onChange={(fmt) => onChange(fmt, quality)} />
-      <QualityPicker label="Quality" value={quality ?? 0.9} onChange={(q) => onChange(format, q)} />
+      <QualityPicker label="Quality" value={quality} onChange={(q) => onChange(format, q)} />
     </div>
   );
 }
