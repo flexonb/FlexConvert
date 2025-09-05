@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Image as ImageIcon,
@@ -19,12 +19,12 @@ import { useImageProcessor } from "../../hooks/useImageProcessor";
 import ToolCard from "../shared/ToolCard";
 import AdvancedDropZone from "../shared/AdvancedDropZone";
 import StepIndicator, { type Step } from "../shared/StepIndicator";
-import ImageEnhanceDialog from "./ImageEnhanceDialog";
-import ImageOperationDialog from "./ImageOperationDialog";
 import type { ImageEnhanceOptions, ImageOperation } from "@/utils/imageProcessor";
 import { useSelection } from "../../context/SelectionContext";
+import ImageEditorPanel from "./ImageEditorPanel";
 
 type ConfigurableOperation =
+  | "enhance"
   | "resize"
   | "crop"
   | "compress"
@@ -37,10 +37,8 @@ type ConfigurableOperation =
 
 export default function ImageTools() {
   const [files, setFiles] = useState<File[]>([]);
-  const [enhanceOpen, setEnhanceOpen] = useState(false);
-
-  const [opDialogOpen, setOpDialogOpen] = useState(false);
   const [currentOperation, setCurrentOperation] = useState<ConfigurableOperation | null>(null);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
   const { status, progress, processFiles, resultFiles, downloadResults } = useImageProcessor();
   const { files: selFiles, setSelection } = useSelection();
@@ -53,7 +51,7 @@ export default function ImageTools() {
   }, [selFiles]);
 
   const imageTools = [
-    { id: "enhance", title: "Enhance", description: "Auto-enhance (sharpen, denoise, levels)", icon: Wand2, action: () => setEnhanceOpen(true) },
+    { id: "enhance", title: "Enhance", description: "Auto-enhance (sharpen, denoise, levels)", icon: Wand2, action: () => openOperation("enhance") },
     { id: "resize", title: "Resize Images", description: "Change image dimensions", icon: ImageIcon, action: () => openOperation("resize") },
     { id: "crop", title: "Crop Images", description: "Crop images to specific area", icon: Crop, action: () => openOperation("crop") },
     { id: "compress", title: "Compress Images", description: "Reduce image file size", icon: Archive, action: () => openOperation("compress") },
@@ -67,34 +65,35 @@ export default function ImageTools() {
 
   const acceptedImageTypes = [".jpeg", ".jpg", ".png", ".webp", ".gif", ".bmp"];
 
-  const stage: "select" | "process" | "download" = useMemo(() => {
+  const stage: "select" | "edit" | "process" | "download" = useMemo(() => {
     if (files.length === 0) return "select";
     if (status === "processing") return "process";
     if (status === "success") return "download";
-    return "process";
-  }, [files.length, status]);
+    if (currentOperation) return "edit";
+    return "select";
+  }, [files.length, status, currentOperation]);
 
   const steps: Step[] = useMemo(() => {
     return [
       { id: "select", label: "Select Images", status: stage === "select" ? "current" : "complete" },
+      { id: "edit", label: "Edit", status: stage === "edit" ? "current" : (stage === "process" || stage === "download" ? "complete" : "upcoming") },
       { id: "process", label: "Process", status: stage === "process" ? "current" : (stage === "download" ? "complete" : "upcoming") },
       { id: "download", label: "Download", status: stage === "download" ? "current" : "upcoming" },
     ];
   }, [stage]);
 
-  const onConfirmEnhance = (opts: ImageEnhanceOptions) => {
-    processFiles(files, "enhance", opts);
-  };
-
   function openOperation(op: ConfigurableOperation) {
     setCurrentOperation(op);
-    setOpDialogOpen(true);
+    // Smooth scroll to editor
+    setTimeout(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   }
 
   function onConfirmOperation(options: any) {
     if (!currentOperation) return;
     processFiles(files, currentOperation as ImageOperation, options);
-    setOpDialogOpen(false);
+    // Keep editor open for convenience; user can switch tools or close manually
   }
 
   const handleFilesSelected = (newFiles: File[]) => {
@@ -110,7 +109,9 @@ export default function ImageTools() {
             <ImageIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
             Image Processing Tools
           </CardTitle>
-          <CardDescription>Select images and choose a tool. Configure options in a guided, multi-step flow. All processing happens locally in your browser.</CardDescription>
+          <CardDescription>
+            Select images and choose a tool. An inline editor opens below with live preview. All processing happens locally in your browser.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <StepIndicator steps={steps} className="mb-4" />
@@ -129,7 +130,7 @@ export default function ImageTools() {
                 accent={tool.id === "enhance" ? "amber" : "green"}
                 onClick={tool.action}
                 disabled={files.length === 0 || status === "processing"}
-                buttonText={files.length === 0 ? "Select files" : "Configure"}
+                buttonText={files.length === 0 ? "Select files" : "Open editor"}
                 buttonVariant={files.length === 0 ? "outline" : "default"}
               />
             ))}
@@ -147,22 +148,16 @@ export default function ImageTools() {
         </CardContent>
       </Card>
 
-      {/* Enhance dialog */}
-      <ImageEnhanceDialog
-        open={enhanceOpen}
-        onOpenChange={setEnhanceOpen}
-        onConfirm={onConfirmEnhance}
-      />
-
-      {/* Generic operation dialog (multistep) */}
-      {currentOperation && (
-        <ImageOperationDialog
-          open={opDialogOpen}
-          onOpenChange={setOpDialogOpen}
-          operation={currentOperation}
-          files={files}
-          onConfirm={onConfirmOperation}
-        />
+      {/* Inline Editor Panel */}
+      {currentOperation && files.length > 0 && (
+        <div ref={editorRef}>
+          <ImageEditorPanel
+            files={files}
+            operation={currentOperation as ImageOperation}
+            onConfirm={onConfirmOperation}
+            onClose={() => setCurrentOperation(null)}
+          />
+        </div>
       )}
     </div>
   );
