@@ -266,6 +266,7 @@ export default function ImageEditorPanel({
               imageSrc ? (
                 <div className="relative w-full h-full">
                   <Cropper
+                    key={aspect || 'free-crop'}
                     image={imageSrc}
                     crop={crop}
                     zoom={zoom}
