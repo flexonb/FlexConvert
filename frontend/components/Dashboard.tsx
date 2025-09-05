@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FileText, Image, RefreshCcw, BarChart3, Wand2 } from "lucide-react";
+import { FileText, Image, RefreshCcw, Wand2 } from "lucide-react";
 import Header from "./Header";
 import PDFTools from "./pdf/PDFTools";
 import ImageTools from "./image/ImageTools";
 import ConvertTools from "./convert/ConvertTools";
-import StatsView from "./stats/StatsView";
 import ToolsView from "./tools/ToolsView";
 import Footer from "./Footer";
 import CommandPalette from "./CommandPalette";
@@ -54,7 +53,7 @@ export default function Dashboard() {
     setShowWelcome(false);
   };
 
-  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
+  const handleNavigate = (tab: "pdf" | "image" | "convert" | "tools") => {
     // Sidebar/menus navigate directly to the selected tool.
     setActiveTab(tab);
     setShowWelcome(false);
@@ -66,7 +65,6 @@ export default function Dashboard() {
       { id: "image", title: "Image Tools", Icon: Image, color: "text-green-600 dark:text-green-400" },
       { id: "convert", title: "Convert", Icon: RefreshCcw, color: "text-purple-600 dark:text-purple-400" },
       { id: "tools", title: "Tools", Icon: Wand2, color: "text-amber-600 dark:text-amber-400" },
-      { id: "stats", title: "Stats", Icon: BarChart3, color: "text-orange-600 dark:text-orange-400" },
     ],
     []
   );
@@ -163,10 +161,6 @@ export default function Dashboard() {
 
                 <TabsContent value="tools" className="focus-visible:outline-none mt-4">
                   <ToolsView />
-                </TabsContent>
-
-                <TabsContent value="stats" className="focus-visible:outline-none mt-4">
-                  <StatsView />
                 </TabsContent>
               </Tabs>
             )}

@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import backend from "~backend/client";
 import { PDFProcessor, PDFProcessingOptions } from "../utils/pdfProcessor";
 import { recordToolUsage } from "../utils/recentTools";
 
@@ -81,12 +80,6 @@ export function usePDFProcessor() {
     setResultBlobs([]);
 
     try {
-      await backend.analytics.trackUsage({
-        toolCategory: "pdf",
-        toolName: operation,
-        fileCount: files.length,
-      });
-
       const progressInterval = setInterval(() => {
         setProgress((prev) => Math.min(prev + 5, 90));
       }, 100);
@@ -193,17 +186,6 @@ export function usePDFProcessor() {
     } catch (error) {
       console.error("PDF processing error:", error);
       setStatus("error");
-
-      try {
-        await backend.analytics.trackUsage({
-          toolCategory: "pdf",
-          toolName: operation,
-          fileCount: files.length,
-          success: false,
-        });
-      } catch (e) {
-        console.error("Failed to track usage:", e);
-      }
 
       recordToolUsage("pdf", operation);
 

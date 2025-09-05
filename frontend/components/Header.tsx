@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   onOpenSidebar?: () => void;
-  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats" | "tools") => void;
+  onNavigate?: (tab: "pdf" | "image" | "convert" | "tools") => void;
 }
 
 export default function Header({ onOpenSidebar, onNavigate }: HeaderProps) {

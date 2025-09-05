@@ -9,12 +9,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { FileText, Image, RefreshCcw, BarChart3, Scissors, Merge, RotateCw, Droplets, Search, Wand2, QrCode } from "lucide-react";
+import { FileText, Image, RefreshCcw, Scissors, Merge, RotateCw, Droplets, Search, Wand2, QrCode } from "lucide-react";
 
 interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (value: "pdf" | "image" | "convert" | "stats" | "tools") => void;
+  onSelect: (value: "pdf" | "image" | "convert" | "tools") => void;
 }
 
 export default function CommandPalette({ open, onOpenChange, onSelect }: CommandPaletteProps) {
@@ -32,7 +32,7 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
     return () => window.removeEventListener("keydown", down);
   }, [open, onOpenChange]);
 
-  const select = (val: "pdf" | "image" | "convert" | "stats" | "tools") => {
+  const select = (val: "pdf" | "image" | "convert" | "tools") => {
     onSelect(val);
     onOpenChange(false);
   };
@@ -63,10 +63,6 @@ export default function CommandPalette({ open, onOpenChange, onSelect }: Command
               <CommandItem onSelect={() => select("tools")}>
                 <Wand2 className="mr-2 h-4 w-4" />
                 <span>Advanced Tools</span>
-              </CommandItem>
-              <CommandItem onSelect={() => select("stats")}>
-                <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Analytics</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />

@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface CategoryDropdownMenuProps {
-  onNavigate?: (tab: "pdf" | "image" | "convert" | "stats" | "tools") => void;
+  onNavigate?: (tab: "pdf" | "image" | "convert" | "tools") => void;
 }
 
 export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMenuProps) {
@@ -71,7 +71,7 @@ export default function CategoryDropdownMenu({ onNavigate }: CategoryDropdownMen
     { icon: Droplets, label: "Watermark Designer", desc: "Design custom watermarks" },
   ];
 
-  const handleNavigate = (tab: "pdf" | "image" | "convert" | "stats" | "tools") => {
+  const handleNavigate = (tab: "pdf" | "image" | "convert" | "tools") => {
     onNavigate?.(tab);
   };
 

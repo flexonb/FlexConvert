@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
 import {
   imagesToPdf,
@@ -34,12 +33,6 @@ export function useConverter() {
     setResultFiles([]);
 
     try {
-      await backend.analytics.trackUsage({
-        toolCategory: "convert",
-        toolName: conversionType,
-        fileCount: files.length,
-      });
-
       const results: { blob: Blob; suggestedName: string }[] = [];
       const update = (v: number) => setProgress(Math.max(0, Math.min(100, Math.round(v))));
 
@@ -88,17 +81,6 @@ export function useConverter() {
     } catch (error) {
       console.error("Conversion error:", error);
       setStatus("error");
-
-      try {
-        await backend.analytics.trackUsage({
-          toolCategory: "convert",
-          toolName: conversionType,
-          fileCount: files.length,
-          success: false,
-        });
-      } catch (e) {
-        console.error("Failed to track usage:", e);
-      }
 
       recordToolUsage("convert", conversionType);
 

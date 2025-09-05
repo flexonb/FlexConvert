@@ -69,7 +69,7 @@ export default function Footer() {
                 100% Local Processing
               </li>
               <li>No File Uploads</li>
-              <li>Anonymous Analytics</li>
+              <li>No Analytics</li>
               <li>Open Source</li>
             </ul>
           </div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import backend from "~backend/client";
 import { recordToolUsage } from "../utils/recentTools";
 import {
   adjustImage,
@@ -39,12 +38,6 @@ export function useImageProcessor() {
     setResultFiles([]);
 
     try {
-      await backend.analytics.trackUsage({
-        toolCategory: "image",
-        toolName: operation,
-        fileCount: files.length,
-      });
-
       const results: { blob: Blob; operation: ImageOperation; originalName: string }[] = [];
       let i = 0;
 
@@ -107,17 +100,6 @@ export function useImageProcessor() {
     } catch (error) {
       console.error("Image processing error:", error);
       setStatus("error");
-
-      try {
-        await backend.analytics.trackUsage({
-          toolCategory: "image",
-          toolName: operation,
-          fileCount: files.length,
-          success: false,
-        });
-      } catch (e) {
-        console.error("Failed to track usage:", e);
-      }
 
       recordToolUsage("image", operation);
 

@@ -1,11 +1,11 @@
 import React from "react";
-import { FileText, Image, RefreshCcw, BarChart3, Command, Palette, Wand2, Clock } from "lucide-react";
+import { FileText, Image, RefreshCcw, Command, Palette, Wand2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolCategory } from "../utils/recentTools";
 import { Button } from "@/components/ui/button";
 import RecentTools from "./RecentTools";
 
-type NavId = ToolCategory | "stats" | "tools";
+type NavId = ToolCategory | "tools";
 
 interface SideNavProps {
   active: NavId;
@@ -45,15 +45,7 @@ const items: { id: NavId; label: string; icon: React.ComponentType<{ className?:
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
     description: "QR codes, watermarks & more"
-  },
-  {
-    id: "stats",
-    label: "Analytics",
-    icon: BarChart3,
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-500/10 dark:bg-orange-500/20",
-    description: "Usage insights & statistics"
-  },
+  }
 ];
 
 export default function SideNav({ active, onSelect, onOpenPalette }: SideNavProps) {

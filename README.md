@@ -22,82 +22,75 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - Error Reporting: Comprehensive error tracking system
 - Performance Optimization: Debouncing, throttling, and memory management
 - Masonry Grid: Better layout for content display
-- Enhanced Analytics: Better tracking with validation and error handling
 
 ## Features
 
 ### PDF Tools
-- **Merge PDFs**: Combine multiple PDF files into one
-- **Split PDF**: Split a PDF into individual pages  
-- **Compress PDF**: Reduce PDF file size
-- **Rotate Pages**: Rotate PDF pages clockwise
-- **Reorder Pages**: Change the order of PDF pages
-- **Add/Remove Pages**: Insert blank pages or delete specific pages
-- **Extract Pages**: Extract a specific page range into a new PDF
-- **Add Watermark**: Add text or image watermarks
-- **PDF to Images**: Convert PDF pages to JPG/PNG
+- Merge PDFs: Combine multiple PDF files into one
+- Split PDF: Split a PDF into individual pages
+- Compress PDF: Reduce PDF file size
+- Rotate Pages: Rotate PDF pages clockwise
+- Reorder Pages: Change the order of PDF pages
+- Add/Remove Pages: Insert blank pages or delete specific pages
+- Extract Pages: Extract a specific page range into a new PDF
+- Add Watermark: Add text watermarks
+- PDF to Images: Convert PDF pages to JPG/PNG
 
 ### Image Tools
-- **Resize Images**: Change image dimensions
-- **Crop Images**: Crop images to specific areas
-- **Compress Images**: Reduce image file size
-- **Rotate/Flip**: Rotate and flip images
-- **Format Conversion**: PNG ↔ JPG ↔ WebP conversion
-- **Grayscale**: Convert images to grayscale
-- **Color Adjustment**: Brightness, contrast, saturation
-- **Text Overlay**: Add text overlays to images
+- Resize Images: Change image dimensions
+- Crop Images: Crop images to specific areas
+- Compress Images: Reduce image file size
+- Rotate/Flip: Rotate and flip images
+- Format Conversion: PNG ↔ JPG ↔ WebP conversion
+- Grayscale: Convert images to grayscale
+- Color Adjustment: Brightness, contrast, saturation
+- Text Overlay: Add text overlays to images
 
 ### File Conversion Tools (Simple, fully in-browser)
-- **Images to PDF**: Combine images into a PDF
-- **Text to PDF**: Convert plain text files to PDF
-- **Extract ZIP**: Extract .zip archives in-browser
+- Images to PDF: Combine images into a PDF
+- Text to PDF: Convert plain text files to PDF
+- Extract ZIP: Extract .zip archives in-browser
 
 Note: Office formats (DOCX, PPTX, XLSX) and PDF → DOCX are not included in the Convert section to ensure everything works reliably offline in the browser. Use the Image and PDF sections for their dedicated tools.
 
 ### Advanced Tools
-- **QR Code Generator**: Create customizable QR codes with various styling options
-- **Watermark Designer**: Design and preview custom watermarks with real-time editing
+- QR Code Generator: Create customizable QR codes with various styling options
+- Watermark Designer: Design and preview custom watermarks with real-time editing
 
 ## Technology Stack
 
 ### Frontend
-- **React** with TypeScript
-- **Tailwind CSS** for styling
-- **shadcn/ui** components
-- **Vite** for build tooling
-- **React Query** for state management
-- **Advanced animations** and performance optimizations
-
-### Backend (Lightweight Analytics)
-- **Encore.ts** for API framework
-- **PostgreSQL** for usage statistics
-- **Enhanced input validation** and error handling
-- **No file processing or storage**
+- React with TypeScript
+- Tailwind CSS for styling
+- shadcn/ui components
+- Vite for build tooling
+- React Query for state management
+- Advanced animations and performance optimizations
 
 ### Processing Libraries (Client-side)
-- **pdf-lib**: PDF manipulation
-- **jsPDF**: PDF generation
-- **PDF.js**: PDF rendering
-- **Pica**: Image resizing
-- **BrowserImageCompression**: Image compression
-- **FileSaver.js**: File downloads
-- **QRCode.js**: QR code generation
+- pdf-lib: PDF manipulation
+- jsPDF: PDF generation
+- PDF.js: PDF rendering
+- Pica: Image resizing
+- BrowserImageCompression: Image compression
+- FileSaver.js: File downloads
+- QRCode.js: QR code generation
 
 ## Performance Features
 
 ### Optimization
-- **Lazy Loading**: Components and resources load on demand
-- **Error Boundaries**: Graceful error handling throughout the app
-- **Performance Monitoring**: Built-in Web Vitals tracking
-- **Memory Management**: Efficient resource cleanup
-- **Debounced Operations**: Reduced unnecessary computations
+- Lazy Loading: Components and resources load on demand
+- Error Boundaries: Graceful error handling throughout the app
+- Performance Monitoring: Built-in Web Vitals tracking
+- Memory Management: Efficient resource cleanup
+- Debounced Operations: Reduced unnecessary computations
 
 ### User Experience
-- **Progressive Enhancement**: Core features work even with limited resources
-- **Responsive Design**: Optimized for all screen sizes
-- **Accessibility**: ARIA labels and keyboard navigation
-- **Dark Mode**: Full dark mode support with system preference detection
-- **Offline Support**: PWA capabilities for offline usage
+- Progressive Enhancement: Core features work even with limited resources
+- Responsive Design: Optimized for all screen sizes
+- Accessibility: ARIA labels and keyboard navigation
+- Dark Mode: Full dark mode support with system preference detection
+- Offline Support: PWA capabilities for offline usage
 
 ## Local Development
 
@@ -116,9 +109,6 @@ Note: Office formats (DOCX, PPTX, XLSX) and PDF → DOCX are not included in the
    npm run dev
    ```
 4. Open http://localhost:4000
-
-### Database Setup
-The application uses Encore.ts which automatically manages the database. On first run, migrations will be applied automatically.
 
 ## Deployment
 
@@ -144,11 +134,11 @@ The application uses Encore.ts which automatically manages the database. On firs
 
 ## Privacy & Security
 
-- **100% Offline Processing**: All file operations happen in your browser
-- **No File Uploads**: Files never leave your device
-- **Anonymous Analytics**: Only tool usage counts are tracked
-- **No User Data**: No personal information is collected or stored
-- **Error Reporting**: Anonymous error tracking for quality improvement
+- 100% Offline Processing: All file operations happen in your browser
+- No File Uploads: Files never leave your device
+- No Analytics: No tracking or telemetry is collected
+- No User Data: No personal information is collected or stored
+- Error Reporting: Optional local-only error tracking for quality improvement (no network transmission)
 
 ## Browser Compatibility
 
@@ -160,9 +150,9 @@ The application uses Encore.ts which automatically manages the database. On firs
 ## File Size Limits
 
 Processing is limited by your browser's memory:
-- **PDF Files**: Up to 100MB recommended
-- **Images**: Up to 50MB per image
-- **Videos**: Up to 500MB (using streaming when possible)
+- PDF Files: Up to 100MB recommended
+- Images: Up to 50MB per image
+- Videos: Up to 500MB (using streaming when possible)
 
 ## Architecture
 
@@ -171,13 +161,6 @@ All file processing happens in the browser using WebAssembly libraries and nativ
 - Complete privacy (files never leave your device)
 - Fast processing (no network overhead)
 - Offline capability (works without internet)
-
-### Backend Analytics
-The lightweight Encore.ts backend only tracks:
-- Which tools are used
-- Usage frequency
-- Success/failure rates
-- No file content or user identification
 
 ## Recent Major Improvements
 
@@ -198,20 +181,19 @@ The lightweight Encore.ts backend only tracks:
 - Better error handling and reporting system
 - Lazy loading for improved initial load times
 - Memory optimization and cleanup
-- Enhanced analytics with input validation
 - Improved responsive design and accessibility
 - Better dark mode support
 
 ## Future Enhancements
 
-- **OCR Integration**: Text extraction from images/PDFs
-- **QR Code Scanning**: Camera-based QR code scanning
-- **Batch Operations**: Process multiple files with saved templates
-- **Advanced Cropping**: Interactive crop tool with aspect ratio presets
-- **Progressive Web App**: Full offline installation support
-- **Plugin System**: Extensible architecture for custom tools
-- **Cloud Sync**: Optional cloud backup for processing templates
-- **Audio/Video Conversion**: Full FFmpeg.wasm-based conversion
+- OCR Integration: Text extraction from images/PDFs
+- QR Code Scanning: Camera-based QR code scanning
+- Batch Operations: Process multiple files with saved templates
+- Advanced Cropping: Interactive crop tool with aspect ratio presets
+- Progressive Web App: Full offline installation support
+- Plugin System: Extensible architecture for custom tools
+- Cloud Sync: Optional cloud backup for processing templates
+- Audio/Video Conversion: Full FFmpeg.wasm-based conversion
 
 ## Contributing
 
