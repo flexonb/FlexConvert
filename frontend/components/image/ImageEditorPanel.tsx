@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Check, Wand2, Crop as CropIcon, RotateCw, Gauge, Type, UploadCloud, Undo2, Image as ImageIcon, AspectRatio } from "lucide-react";
+import { X, Check, Wand2, Crop as CropIcon, RotateCw, Gauge, Type, UploadCloud, Undo2, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Cropper, { type Area } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
@@ -54,9 +54,8 @@ type AnyOptions =
   | TextOverlayOptions
   | Record<string, any>;
 
-// Common aspect ratios for cropping
+// Common aspect ratios for cropping (Free removed)
 const ASPECT_RATIOS = [
-  { label: "Free", value: null },
   { label: "1:1 (Square)", value: 1 },
   { label: "3:4 (Portrait)", value: 3/4 },
   { label: "4:3 (Landscape)", value: 4/3 },
@@ -83,7 +82,7 @@ export default function ImageEditorPanel({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [aspect, setAspect] = useState<number | null>(null);
+  const [aspect, setAspect] = useState<number | null>(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null);
   const [showCropPreview, setShowCropPreview] = useState(false);
@@ -104,7 +103,7 @@ export default function ImageEditorPanel({
     setOptions(defaultOptionsFor(operation));
     setCrop({ x: 0, y: 0 });
     setZoom(1);
-    setAspect(null);
+    setAspect(operation === "crop" ? 1 : null);
     setCroppedAreaPixels(null);
     setShowCropPreview(false);
     if (previewUrl) {
@@ -218,7 +217,7 @@ export default function ImageEditorPanel({
   const resetCrop = () => {
     setCrop({ x: 0, y: 0 });
     setZoom(1);
-    setAspect(null);
+    setAspect(1);
     setCroppedAreaPixels(null);
     setShowCropPreview(false);
     if (cropPreviewUrl) {
@@ -318,16 +317,19 @@ export default function ImageEditorPanel({
                 </div>
                 <div>
                   <Label>Aspect Ratio</Label>
-                  <Select value={aspect?.toString() || "null"} onValueChange={(v) => {
-                    setAspect(v === "null" ? null : parseFloat(v));
-                    setCropperKey(k => k + 1);
-                  }}>
+                  <Select
+                    value={aspect?.toString() || "1"}
+                    onValueChange={(v) => {
+                      setAspect(parseFloat(v));
+                      setCropperKey(k => k + 1);
+                    }}
+                  >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {ASPECT_RATIOS.map((ratio) => (
-                        <SelectItem key={ratio.label} value={ratio.value?.toString() || "null"}>
+                        <SelectItem key={ratio.label} value={ratio.value.toString()}>
                           {ratio.label}
                         </SelectItem>
                       ))}
