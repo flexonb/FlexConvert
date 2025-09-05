@@ -116,7 +116,6 @@ export default function ImageEditorPanel({
         setPreviewUrl(url);
       } catch (err) {
         // Silent for auto preview; user can still apply
-        // console.error("Preview error:", err);
       } finally {
         if (!cancelled) setIsGenerating(false);
       }
@@ -344,7 +343,7 @@ function defaultOptionsFor(op: ImageOperation): AnyOptions {
     case "adjust":
       return { brightness: 1.1, contrast: 1.05, saturation: 1.05, format: "jpeg", quality: 0.9 } as AdjustOptions;
     case "text-overlay":
-      return { text: "FlexConvert", opacity: 0.75, format: "jpeg", quality: 0.92 } as TextOverlayOptions;
+      return { text: "FlexConvert", opacity: 0.75, position: "bottom-right", offsetX: 0, offsetY: 0, format: "jpeg", quality: 0.92 } as TextOverlayOptions;
     default:
       return {};
   }
@@ -603,8 +602,73 @@ function renderFields(
             <Label htmlFor="overlay-text">Text *</Label>
             <Input id="overlay-text" placeholder="Enter overlay text" value={o.text ?? ""} onChange={(e) => setOptions({ ...o, text: e.target.value })} />
           </div>
-          <LabeledSlider label="Opacity" value={o.opacity ?? 0.75} min={0.1} max={1} step={0.05} onChange={(v) => setOptions({ ...o, opacity: v })} format={(v) => `${Math.round(v * 100)}%`} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Position</Label>
+              <Select
+                value={o.position ?? "bottom-right"}
+                onValueChange={(v: "center" | "top-left" | "top-right" | "bottom-left" | "bottom-right") =>
+                  setOptions({ ...o, position: v })
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="top-left">Top Left</SelectItem>
+                  <SelectItem value="top-right">Top Right</SelectItem>
+                  <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                  <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Opacity</Label>
+              <div className="mt-2">
+                <Slider
+                  value={[o.opacity ?? 0.75]}
+                  onValueChange={([v]) => setOptions({ ...o, opacity: v })}
+                  min={0.1}
+                  max={1}
+                  step={0.05}
+                />
+                <div className="text-xs text-muted-foreground mt-1">{Math.round((o.opacity ?? 0.75) * 100)}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Offset X</Label>
+              <Slider
+                value={[o.offsetX ?? 0]}
+                onValueChange={([v]) => setOptions({ ...o, offsetX: v })}
+                min={-500}
+                max={500}
+                step={1}
+              />
+              <div className="text-xs text-muted-foreground mt-1">{Math.round(o.offsetX ?? 0)} px</div>
+            </div>
+            <div>
+              <Label>Offset Y</Label>
+              <Slider
+                value={[o.offsetY ?? 0]}
+                onValueChange={([v]) => setOptions({ ...o, offsetY: v })}
+                min={-500}
+                max={500}
+                step={1}
+              />
+              <div className="text-xs text-muted-foreground mt-1">{Math.round(o.offsetY ?? 0)} px</div>
+            </div>
+          </div>
+
           <OutputFormatQuality format={o.format ?? "jpeg"} quality={o.quality ?? 0.92} onChange={(format, quality) => setOptions({ ...o, format, quality })} />
+
+          <div className="text-[11px] text-muted-foreground">
+            Position sets the base corner/center; use offsets to fine-tune placement. Positive X moves right, positive Y moves down.
+          </div>
         </div>
       );
     }
