@@ -87,6 +87,7 @@ export default function ImageEditorPanel({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null);
   const [showCropPreview, setShowCropPreview] = useState(false);
+  const [cropperKey, setCropperKey] = useState(0);
 
   // Load preview source
   useEffect(() => {
@@ -224,6 +225,7 @@ export default function ImageEditorPanel({
       URL.revokeObjectURL(cropPreviewUrl);
       setCropPreviewUrl(null);
     }
+    setCropperKey(k => k + 1);
   };
 
   return (
@@ -266,7 +268,7 @@ export default function ImageEditorPanel({
               imageSrc ? (
                 <div className="relative w-full h-full">
                   <Cropper
-                    key={aspect || 'free-crop'}
+                    key={cropperKey}
                     image={imageSrc}
                     crop={crop}
                     zoom={zoom}
@@ -316,7 +318,10 @@ export default function ImageEditorPanel({
                 </div>
                 <div>
                   <Label>Aspect Ratio</Label>
-                  <Select value={aspect?.toString() || "null"} onValueChange={(v) => setAspect(v === "null" ? null : parseFloat(v))}>
+                  <Select value={aspect?.toString() || "null"} onValueChange={(v) => {
+                    setAspect(v === "null" ? null : parseFloat(v));
+                    setCropperKey(k => k + 1);
+                  }}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
