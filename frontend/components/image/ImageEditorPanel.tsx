@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Check, Wand2, Crop as CropIcon, RotateCw, Gauge, Type, UploadCloud, Undo2, Image as ImageIcon } from "lucide-react";
+import { X, Check, Wand2, Crop as CropIcon, RotateCw, Gauge, Type, UploadCloud, Undo2, Image as ImageIcon, AspectRatio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Cropper, { type Area } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
@@ -54,6 +54,18 @@ type AnyOptions =
   | TextOverlayOptions
   | Record<string, any>;
 
+// Common aspect ratios for cropping
+const ASPECT_RATIOS = [
+  { label: "Free", value: null },
+  { label: "1:1 (Square)", value: 1 },
+  { label: "3:4 (Portrait)", value: 3/4 },
+  { label: "4:3 (Landscape)", value: 4/3 },
+  { label: "9:16 (Vertical)", value: 9/16 },
+  { label: "16:9 (Widescreen)", value: 16/9 },
+  { label: "2:3 (Portrait Photo)", value: 2/3 },
+  { label: "3:2 (Landscape Photo)", value: 3/2 },
+] as const;
+
 export default function ImageEditorPanel({
   files,
   operation,
@@ -71,8 +83,10 @@ export default function ImageEditorPanel({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [aspect, setAspect] = useState<number | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null);
+  const [showCropPreview, setShowCropPreview] = useState(false);
 
   // Load preview source
   useEffect(() => {
@@ -89,7 +103,9 @@ export default function ImageEditorPanel({
     setOptions(defaultOptionsFor(operation));
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    setAspect(null);
     setCroppedAreaPixels(null);
+    setShowCropPreview(false);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -135,11 +151,19 @@ export default function ImageEditorPanel({
 
   const onCropComplete = useCallback((_area: Area, areaPixels: Area) => {
     setCroppedAreaPixels(areaPixels);
-  }, []);
+    // Auto-generate crop preview when area changes (with debounce)
+    if (operation === "crop") {
+      const timer = setTimeout(() => {
+        generateCropPreview(areaPixels);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [operation]);
 
-  const generateCropPreview = async () => {
+  const generateCropPreview = async (cropArea?: Area) => {
     if (!firstFile) return;
-    if (!croppedAreaPixels) {
+    const area = cropArea || croppedAreaPixels;
+    if (!area) {
       toast({
         title: "Crop area not set",
         description: "Drag to select an area to crop.",
@@ -149,10 +173,11 @@ export default function ImageEditorPanel({
     }
     try {
       setIsGenerating(true);
-      const blob = await cropImage(firstFile, { ...(options as CropOptions), area: croppedAreaPixels });
+      const blob = await cropImage(firstFile, { ...(options as CropOptions), area });
       const url = URL.createObjectURL(blob);
       if (cropPreviewUrl) URL.revokeObjectURL(cropPreviewUrl);
       setCropPreviewUrl(url);
+      setShowCropPreview(true);
     } catch (err) {
       console.error("Crop preview error:", err);
       toast({
@@ -187,6 +212,18 @@ export default function ImageEditorPanel({
       return;
     }
     onConfirm(finalOptions);
+  };
+
+  const resetCrop = () => {
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setAspect(null);
+    setCroppedAreaPixels(null);
+    setShowCropPreview(false);
+    if (cropPreviewUrl) {
+      URL.revokeObjectURL(cropPreviewUrl);
+      setCropPreviewUrl(null);
+    }
   };
 
   return (
@@ -232,11 +269,22 @@ export default function ImageEditorPanel({
                     image={imageSrc}
                     crop={crop}
                     zoom={zoom}
+                    aspect={aspect || undefined}
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
                     onCropComplete={onCropComplete}
                     restrictPosition={false}
+                    showGrid={true}
+                    style={{
+                      containerStyle: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      },
+                    }}
                   />
+                  {/* Crop overlay instructions */}
+                  <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                    Drag corners to adjust • Move image to reposition
+                  </div>
                 </div>
               ) : (
                 <EmptyPreview />
@@ -253,27 +301,65 @@ export default function ImageEditorPanel({
 
           {operation === "crop" && (
             <>
-              <div>
-                <Label>Zoom</Label>
-                <Slider value={[zoom]} onValueChange={([v]) => setZoom(v)} min={1} max={3} step={0.1} />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Zoom: {zoom.toFixed(1)}x</Label>
+                  <Slider 
+                    value={[zoom]} 
+                    onValueChange={([v]) => setZoom(v)} 
+                    min={1} 
+                    max={3} 
+                    step={0.1} 
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Aspect Ratio</Label>
+                  <Select value={aspect?.toString() || "null"} onValueChange={(v) => setAspect(v === "null" ? null : parseFloat(v))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ASPECT_RATIOS.map((ratio) => (
+                        <SelectItem key={ratio.label} value={ratio.value?.toString() || "null"}>
+                          {ratio.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="secondary" onClick={generateCropPreview} disabled={!firstFile || isGenerating}>
+                <Button size="sm" variant="secondary" onClick={() => generateCropPreview()} disabled={!firstFile || isGenerating}>
                   {isGenerating ? "Generating..." : "Generate Preview"}
                 </Button>
+                <Button size="sm" variant="outline" onClick={resetCrop}>
+                  <Undo2 className="w-4 h-4 mr-1" /> Reset Crop
+                </Button>
                 {cropPreviewUrl && (
-                  <a
-                    href={cropPreviewUrl}
-                    download="crop-preview.jpg"
-                    className="text-xs underline text-muted-foreground"
-                  >
-                    Download preview
-                  </a>
+                  <Button size="sm" variant="ghost" onClick={() => setShowCropPreview(!showCropPreview)}>
+                    {showCropPreview ? "Hide" : "Show"} Preview
+                  </Button>
                 )}
               </div>
-              {cropPreviewUrl && (
+
+              {cropPreviewUrl && showCropPreview && (
                 <div className="rounded-lg border bg-white/60 dark:bg-gray-900/60 overflow-hidden">
-                  <img src={cropPreviewUrl} alt="Cropped Preview" className="max-h-64 w-full object-contain" />
+                  <div className="p-2 bg-gray-50 dark:bg-gray-800 border-b">
+                    <div className="text-xs font-medium flex items-center gap-2">
+                      <CropIcon className="w-3 h-3" />
+                      Crop Preview
+                      {croppedAreaPixels && (
+                        <span className="text-muted-foreground">
+                          {Math.round(croppedAreaPixels.width)} × {Math.round(croppedAreaPixels.height)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <img src={cropPreviewUrl} alt="Cropped Preview" className="max-h-48 w-full object-contain rounded" />
+                  </div>
                 </div>
               )}
             </>
@@ -528,10 +614,20 @@ function renderFields(
       const o = options as CropOptions;
       return (
         <div className="space-y-4">
-          <OutputFormatQuality format={o.format ?? "jpeg"} quality={o.quality ?? 0.92} onChange={(format, quality) => setOptions({ ...o, format, quality })} />
-          <div className="text-xs text-muted-foreground">
-            Drag the image on the left to select a crop area. Use the Zoom slider to fine-tune selection.
+          <div className="rounded-lg border border-blue-200/60 dark:border-blue-800/60 bg-blue-50/30 dark:bg-blue-950/20 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <CropIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">How to Crop</span>
+            </div>
+            <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
+              <li>• <strong>Define the frame:</strong> Drag corner handles to adjust size and shape</li>
+              <li>• <strong>Reposition image:</strong> Click and drag inside the crop box to move the image</li>
+              <li>• <strong>Set aspect ratio:</strong> Choose a preset ratio from the dropdown</li>
+              <li>• <strong>Zoom:</strong> Use the zoom slider for precise adjustments</li>
+              <li>• <strong>Preview:</strong> Click "Generate Preview" to see your crop result</li>
+            </ul>
           </div>
+          <OutputFormatQuality format={o.format ?? "jpeg"} quality={o.quality ?? 0.92} onChange={(format, quality) => setOptions({ ...o, format, quality })} />
         </div>
       );
     }
