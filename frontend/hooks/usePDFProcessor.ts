@@ -57,7 +57,7 @@ export function usePDFProcessor() {
       }
     }
 
-    const configRequiredOps = ["rotate", "watermark", "to-images", "remove-pages", "add-pages", "reorder", "extract-range"];
+    const configRequiredOps = ["rotate", "watermark", "to-images", "remove-pages", "add-pages", "reorder", "extract-range", "split"];
     if (configRequiredOps.includes(operation) && !options) {
       try {
         const info = await PDFProcessor.getPDFInfo(files[0]);
@@ -106,9 +106,14 @@ export function usePDFProcessor() {
           case "merge":
             result = await PDFProcessor.mergePDFs(files);
             break;
-          case "split":
-            result = await PDFProcessor.splitPDF(files[0]);
+          case "split": {
+            if (options?.pageRange) {
+              result = await PDFProcessor.splitRange(files[0], options.pageRange);
+            } else {
+              result = await PDFProcessor.splitPDF(files[0]);
+            }
             break;
+          }
           case "compress":
             result = await PDFProcessor.compressPDF(files[0], options);
             break;

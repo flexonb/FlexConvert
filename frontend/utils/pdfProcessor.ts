@@ -104,16 +104,90 @@ export class PDFProcessor {
     return splitPDFs;
   }
 
-  static async compressPDF(file: File, _options: PDFProcessingOptions = {}): Promise<Blob> {
+  static async splitRange(file: File, range: { start: number; end: number }): Promise<Blob[]> {
     await this.validatePDFFile(file);
-    
     const arrayBuffer = await file.arrayBuffer();
     await this.validatePDFBuffer(arrayBuffer);
-    
+
     const pdf = await PDFDocument.load(arrayBuffer);
-    // Basic "compression": re-save to remove redundant objects where possible and use object streams.
-    const pdfBytes = await pdf.save({ useObjectStreams: true });
-    return new Blob([pdfBytes], { type: 'application/pdf' });
+    const pageCount = pdf.getPageCount();
+    const start = Math.max(0, Math.min(range.start, range.end));
+    const end = Math.min(pageCount - 1, Math.max(range.start, range.end));
+
+    if (start < 0 || end >= pageCount || start > end) {
+      throw new Error(`Invalid page range: ${start}-${end}. Valid range is 0-${pageCount - 1}.`);
+    }
+
+    const chunks: Blob[] = [];
+    for (let i = start; i <= end; i++) {
+      const newPdf = await PDFDocument.create();
+      const [page] = await newPdf.copyPages(pdf, [i]);
+      newPdf.addPage(page);
+      const bytes = await newPdf.save({ useObjectStreams: true });
+      chunks.push(new Blob([bytes], { type: 'application/pdf' }));
+    }
+    return chunks;
+  }
+
+  static async compressPDF(file: File, options: PDFProcessingOptions = {}): Promise<Blob> {
+    // Rebuild pages as compressed JPEG images using PDF.js rendering to achieve consistent size reduction.
+    await this.validatePDFFile(file);
+    const arrayBuffer = await file.arrayBuffer();
+    await this.validatePDFBuffer(arrayBuffer);
+
+    // Determine quality/scale from options
+    const level = Math.max(1, Math.min(9, options.compressionLevel ?? 6));
+    // Map: level 1 (light) -> high quality/scale, level 9 (strong) -> lower quality/scale
+    const quality = Math.max(0.3, Math.min(0.95, options.quality ?? (0.95 - (level * 0.07)))); // ~0.45 at level 7
+    const scale = Math.max(0.8, Math.min(2, 2 - (level * 0.1))); // from ~1.1–1.2 down to ~1.1/0.8
+
+    try {
+      const srcPdf = await getDocument({ data: arrayBuffer }).promise;
+      if (srcPdf.numPages === 0) {
+        throw new Error("PDF has no pages to compress.");
+      }
+
+      const out = await PDFDocument.create();
+
+      for (let pageNum = 1; pageNum <= srcPdf.numPages; pageNum++) {
+        const srcPage = await srcPdf.getPage(pageNum);
+        const viewport = srcPage.getViewport({ scale });
+
+        // Render page to canvas
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          throw new Error("Could not get canvas context for compression.");
+        }
+        canvas.width = Math.max(1, Math.floor(viewport.width));
+        canvas.height = Math.max(1, Math.floor(viewport.height));
+
+        await srcPage.render({ canvasContext: ctx, viewport }).promise;
+
+        // Convert canvas to JPEG blob at chosen quality
+        const jpegBlob: Blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Failed to convert canvas to JPEG"))), "image/jpeg", quality);
+        });
+
+        const jpgBytes = new Uint8Array(await jpegBlob.arrayBuffer());
+        const jpg = await out.embedJpg(jpgBytes);
+
+        const page = out.addPage([viewport.width, viewport.height]);
+        page.drawImage(jpg, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+      }
+
+      const bytes = await out.save({ useObjectStreams: true });
+      return new Blob([bytes], { type: "application/pdf" });
+    } catch (err) {
+      // Fallback: if PDF.js rendering fails, return re-saved PDF (lightweight compression)
+      try {
+        const fallbackPdf = await PDFDocument.load(arrayBuffer);
+        const fallbackBytes = await fallbackPdf.save({ useObjectStreams: true });
+        return new Blob([fallbackBytes], { type: "application/pdf" });
+      } catch {
+        throw err;
+      }
+    }
   }
 
   static async rotatePDF(file: File, options: PDFProcessingOptions): Promise<Blob> {

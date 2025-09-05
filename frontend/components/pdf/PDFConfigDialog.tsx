@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { PDFProcessingOptions } from "../../utils/pdfProcessor";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface PDFConfigDialogProps {
   open: boolean;
@@ -34,7 +35,7 @@ export default function PDFConfigDialog({
     removePages: [],
     pageRange: { start: 0, end: pageCount - 1 }
   });
-  
+  const [splitMode, setSplitMode] = useState<"all" | "range">("all");
   const [validationError, setValidationError] = useState<string>("");
 
   // Keep derived defaults in sync when pageCount changes
@@ -48,6 +49,11 @@ export default function PDFConfigDialog({
     }));
   }, [pageCount]);
 
+  // Reset mode on operation change
+  useEffect(() => {
+    setSplitMode("all");
+  }, [operation]);
+
   const validateAndConfirm = () => {
     setValidationError("");
     
@@ -57,6 +63,22 @@ export default function PDFConfigDialog({
         if (!options.watermarkText || options.watermarkText.trim().length === 0) {
           setValidationError("Watermark text is required");
           return;
+        }
+        break;
+
+      case "split":
+        if (splitMode === "range") {
+          if (!options.pageRange) {
+            setValidationError("Page range is required");
+            return;
+          }
+          if (options.pageRange.start < 0 || options.pageRange.end >= pageCount || options.pageRange.start > options.pageRange.end) {
+            setValidationError(`Invalid page range. Valid range is 1-${pageCount} (inclusive).`);
+            return;
+          }
+        } else {
+          // Ensure no pageRange set if splitting all
+          setOptions(prev => ({ ...prev, pageRange: undefined }));
         }
         break;
         
@@ -184,6 +206,76 @@ export default function PDFConfigDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        );
+
+      case "split":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Split Mode</Label>
+              <RadioGroup
+                className="mt-2 grid grid-cols-2 gap-3"
+                value={splitMode}
+                onValueChange={(v: "all" | "range") => setSplitMode(v)}
+              >
+                <div className="flex items-center space-x-2 rounded-md border p-3">
+                  <RadioGroupItem id="split-all" value="all" />
+                  <Label htmlFor="split-all" className="cursor-pointer">All pages</Label>
+                </div>
+                <div className="flex items-center space-x-2 rounded-md border p-3">
+                  <RadioGroupItem id="split-range" value="range" />
+                  <Label htmlFor="split-range" className="cursor-pointer">Page range</Label>
+                </div>
+              </RadioGroup>
+              <p className="text-xs text-gray-500 mt-1">
+                Split the PDF into separate files. Choose a range to split only specific pages.
+              </p>
+            </div>
+
+            {splitMode === "range" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="split-range-start">Start Page (1-indexed) *</Label>
+                  <Input
+                    id="split-range-start"
+                    type="number"
+                    min={1}
+                    max={pageCount}
+                    defaultValue={1}
+                    onChange={(e) => {
+                      const start1 = Math.max(1, Math.min(pageCount, parseInt(e.target.value) || 1));
+                      setOptions(prev => ({ 
+                        ...prev, 
+                        pageRange: { start: start1 - 1, end: prev.pageRange?.end ?? (pageCount - 1) } 
+                      }));
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="split-range-end">End Page (1-indexed) *</Label>
+                  <Input
+                    id="split-range-end"
+                    type="number"
+                    min={1}
+                    max={pageCount}
+                    defaultValue={pageCount}
+                    onChange={(e) => {
+                      const end1 = Math.max(1, Math.min(pageCount, parseInt(e.target.value) || pageCount));
+                      setOptions(prev => ({ 
+                        ...prev, 
+                        pageRange: { start: prev.pageRange?.start ?? 0, end: end1 - 1 } 
+                      }));
+                    }}
+                  />
+                </div>
+                {options.pageRange && (
+                  <div className="col-span-2 text-xs text-gray-500">
+                    Selected: {options.pageRange.start + 1} – {options.pageRange.end + 1} of {pageCount}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
 
