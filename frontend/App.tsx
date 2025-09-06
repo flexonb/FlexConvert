@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "./components/Dashboard";
 import ShareView from "./components/sharing/ShareView";
+import SharesList from "./components/sharing/SharesList";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import "./utils/errorReporting"; // Initialize error reporting
@@ -32,6 +33,7 @@ export default function App() {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/share/:shareId" element={<ShareView />} />
+                    <Route path="/shares" element={<SharesList />} />
                   </Routes>
                   <Toaster />
                 </div>

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, BookOpen, Shield, LifeBuoy } from "lucide-react";
+import { ExternalLink, BookOpen, Shield, LifeBuoy, Share2 } from "lucide-react";
 
 export default function LinkMenu() {
   return (
@@ -23,6 +23,17 @@ export default function LinkMenu() {
         <DropdownMenuLabel>Resources</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <a
+              href="/shares"
+              className="cursor-pointer gap-2 flex items-center"
+              aria-label="View public shares"
+              title="Public Shares"
+            >
+              <Share2 className="w-4 h-4" />
+              Shares
+            </a>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a
               href="/docs.html"
