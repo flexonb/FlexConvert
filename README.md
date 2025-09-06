@@ -346,9 +346,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Live Demo**: [https://flexconvert.app](https://flexconvert.app)
-- **Documentation**: [https://docs.flexconvert.app](https://docs.flexconvert.app)
-- **GitHub Issues**: [https://github.com/yourusername/flexconvert/issues](https://github.com/yourusername/flexconvert/issues)
+- **Live Demo**: https://staging-flexconvert-app-p5ti.frontend.encr.app/
 
 ---
 
