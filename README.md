@@ -92,7 +92,7 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/flexconvert.git
+git clone https://github.com/flexonb/FlexConvert.git
 cd flexconvert
 ```
 
