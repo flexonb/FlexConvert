@@ -4,14 +4,14 @@
 
 FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in the browser without any external APIs. It provides comprehensive document and image processing capabilities while maintaining complete user privacy.
 
-## ✨ Features
+## Features
 
-### 🔧 New Advanced Tools
+### New Advanced Tools
 - **QR Code Generator**: Create customizable QR codes with various options
 - **Watermark Designer**: Visual watermark creation tool with real-time preview
 - **Enhanced File Processing**: Improved algorithms and error handling
 
-### 🎨 UI/UX Improvements
+### UI/UX Improvements
 - **Floating Particles Animation**: Subtle background animations
 - **Progressive Image Loading**: Better image loading experience
 - **Advanced Drop Zone**: Enhanced file upload with previews
@@ -19,13 +19,13 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **Performance Monitoring**: Built-in performance tracking
 - **Enhanced Command Palette**: Better search and navigation
 
-### 🏗️ Technical Enhancements
+### Technical Enhancements
 - **Lazy Loading**: Components load only when needed
 - **Error Reporting**: Comprehensive error tracking system
 - **Performance Optimization**: Debouncing, throttling, and memory management
 - **Masonry Grid**: Better layout for content display
 
-## 🚀 Features Overview
+## Features Overview
 
 ### PDF Tools
 - **Merge PDFs**: Combine multiple PDF files into one
@@ -57,7 +57,7 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **QR Code Generator**: Create customizable QR codes with various styling options
 - **Watermark Designer**: Design and preview custom watermarks with real-time editing
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - **React** with TypeScript
@@ -81,13 +81,13 @@ FlexConvert is an all-in-one, offline-first file toolkit that runs entirely in t
 - **FileSaver.js**: File downloads
 - **QRCode.js**: QR code generation
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Node.js** 18 or higher
 - **npm** or **yarn**
 - **Docker** (optional, for containerized deployment)
 
-## 🏃‍♂️ Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 
@@ -110,7 +110,7 @@ npm run dev
 
 The application will be available at `http://localhost:4000`.
 
-## 🐳 Docker Development
+## Docker Development
 
 ### Build and Run with Docker
 
@@ -128,7 +128,7 @@ docker run -p 4000:4000 flexconvert
 docker-compose up --build
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Build
 
@@ -170,7 +170,7 @@ The application uses PostgreSQL through Encore.ts. Database migrations are handl
 2. Deploy using Docker or serve the `dist` folder with a web server
 3. Configure database and object storage connections
 
-## 🎯 Usage
+## Usage
 
 ### Basic Workflow
 1. **Upload Files**: Drag and drop or click to select files
@@ -189,7 +189,7 @@ The application uses PostgreSQL through Encore.ts. Database migrations are handl
 - Share tool configurations for reuse
 - Set expiration dates and download limits
 
-## 🔒 Privacy & Security
+## Privacy & Security
 
 - **100% Offline Processing**: All file operations happen in your browser
 - **No File Uploads**: Files never leave your device (except for optional sharing)
@@ -197,21 +197,21 @@ The application uses PostgreSQL through Encore.ts. Database migrations are handl
 - **No User Data**: No personal information is collected or stored
 - **Open Source**: Full transparency with MIT license
 
-## 🌐 Browser Compatibility
+## Browser Compatibility
 
 - **Chrome** 90+
 - **Firefox** 88+
 - **Safari** 14+
 - **Edge** 90+
 
-## 📏 File Size Limits
+## File Size Limits
 
 Processing is limited by your browser's memory:
 - **PDF Files**: Up to 100MB recommended
 - **Images**: Up to 50MB per image
 - **Archives**: Up to 500MB
 
-## 🧑‍💻 Development
+## Development
 
 ### Project Structure
 
@@ -250,7 +250,7 @@ flexconvert/
 - **Component-based architecture**
 - **Responsive design** with Tailwind CSS
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
@@ -268,7 +268,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Include browser version, OS, and reproduction steps
 - Check existing issues before creating new ones
 
-## 📖 API Documentation
+## API Documentation
 
 ### Backend API (Encore.ts)
 
@@ -284,7 +284,7 @@ The backend provides optional file sharing capabilities:
 
 All file processing happens client-side using Web APIs and WebAssembly libraries.
 
-## 🔧 Configuration
+## Configuration
 
 ### Backend Configuration
 
@@ -306,7 +306,7 @@ export const config = {
 };
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -335,7 +335,7 @@ export const config = {
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **PDF.js** for PDF rendering capabilities
 - **pdf-lib** for PDF manipulation
@@ -349,7 +349,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Live Demo**: https://staging-flexconvert-app-p5ti.frontend.encr.app/
 
 ---
-
-**Made with ❤️ by BUGINGO Flexon**
 
 *If you find FlexConvert useful, please consider giving it a ⭐ on GitHub!*
