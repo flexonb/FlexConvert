@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to FlexConvert! This document provides guidelines and information for contributors.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -34,7 +34,7 @@ Thank you for your interest in contributing to FlexConvert! This document provid
    npm test
    ```
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 flexconvert/
@@ -57,7 +57,7 @@ flexconvert/
 └── public/                # Static assets
 ```
 
-## 🎯 How to Contribute
+## How to Contribute
 
 ### Types of Contributions
 
@@ -75,7 +75,7 @@ flexconvert/
 3. **Fork the repository** and create a feature branch
 4. **Follow the coding standards** outlined below
 
-## 📝 Coding Standards
+## Coding Standards
 
 ### TypeScript
 
@@ -124,7 +124,7 @@ export default function MyComponent({ title, onSave, isLoading = false }: MyComp
 - Log errors to console in development
 - Use the toast system for user notifications
 
-## 🔧 Adding New Tools
+## Adding New Tools
 
 ### PDF Tools
 
@@ -153,7 +153,7 @@ export default function MyComponent({ title, onSave, isLoading = false }: MyComp
 2. Add to `ToolsView.tsx`
 3. Follow existing patterns for consistency
 
-## 🧪 Testing
+## Testing
 
 ### Manual Testing
 
@@ -176,7 +176,7 @@ Test in supported browsers:
 - Monitor memory usage during processing
 - Ensure smooth animations and interactions
 
-## 📋 Pull Request Process
+## Pull Request Process
 
 ### Before Submitting
 
@@ -231,7 +231,7 @@ Brief description of changes
 Add screenshots for UI changes
 ```
 
-## 🐛 Reporting Issues
+## Reporting Issues
 
 ### Bug Reports
 
@@ -251,7 +251,7 @@ Include:
 - **Use cases**
 - **Alternative solutions considered**
 
-## 📖 Documentation
+## Documentation
 
 ### Code Documentation
 
@@ -267,7 +267,7 @@ Include:
 - Include screenshots for UI changes
 - Update troubleshooting section
 
-## 🎨 Design Guidelines
+## Design Guidelines
 
 ### UI Components
 
@@ -290,7 +290,7 @@ Include:
 - Ensure touch-friendly interface on mobile
 - Maintain usability at all screen sizes
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Client-Side Processing
 
@@ -306,7 +306,7 @@ Include:
 - Local storage for preferences only
 - Optional sharing features clearly marked
 
-## 📞 Getting Help
+## Getting Help
 
 ### Community
 
@@ -321,7 +321,7 @@ Include:
 - Help with technical questions
 - Guide new contributors
 
-## 🏆 Recognition
+## Recognition
 
 Contributors will be:
 - Listed in the README
@@ -329,7 +329,7 @@ Contributors will be:
 - Invited to contributor events
 - Given maintainer status for significant contributions
 
-## 📋 Code of Conduct
+## Code of Conduct
 
 ### Our Standards
 
@@ -346,8 +346,8 @@ Contributors will be:
 - Consequences may include temporary or permanent bans
 - Appeals process available
 
-## 🎉 Thank You!
+## Thank You!
 
 Your contributions make FlexConvert better for everyone. Whether it's code, documentation, bug reports, or feature suggestions, every contribution is valued and appreciated.
 
-Happy coding! 🚀
+Happy coding! 
